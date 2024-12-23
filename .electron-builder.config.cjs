@@ -14,6 +14,8 @@ module.exports = async function () {
   } = await import('./version/getVersion.mjs');
 
   return {
+    "productName": "Clorio.Wallet",
+    "artifactName": "Clorio.Wallet-${version}.${ext}",
     protocols: {
       name: "Clorio Wallet",
       schemes: ["mina"]
@@ -26,7 +28,6 @@ module.exports = async function () {
     extraMetadata: {
       version: getVersion(),
     },
-    productName: "Clorio Wallet",
     linux: {
       target: [
         { target: "deb" },
@@ -38,6 +39,10 @@ module.exports = async function () {
         { x: 340, y: 270, type: 'file' },
         { x: 560, y: 270, type: 'link', path: '/Applications' },
       ],
+    },
+    mac: {
+      target: ["dmg", "zip"],
+      artifactName: "Clorio.Wallet-${version}.${ext}"
     },
   };
 };
