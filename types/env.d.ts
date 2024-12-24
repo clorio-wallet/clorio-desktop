@@ -23,6 +23,10 @@ interface ImportMetaEnv {
 
   /** Current app version */
   readonly VITE_APP_VERSION: string;
+  readonly VITE_GITHUB_OWNER: undefined | string;
+  readonly VITE_GITHUB_REPO: undefined | string;
+  readonly VITE_GITHUB_TOKEN: undefined | string;
+  readonly VITE_REACT_APP_GITHUB_RELEASE_URL: undefined | string;
 }
 
 interface ImportMeta {
