@@ -55,9 +55,6 @@ const config = {
     reportCompressedSize: false,
     publicDir:join(PACKAGE_ROOT, 'resources'),
   },
-  test: {
-    environment: 'happy-dom',
-  },
   plugins: [
     react(),
     svgr(),
