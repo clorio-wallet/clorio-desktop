@@ -3,7 +3,7 @@ import isElectron from 'is-electron';
 import {toast} from 'react-toastify';
 import BadWords from 'bad-words';
 import Censorify from 'censorify-it';
-import {UpdateError} from '../components/UI/UpdateError';
+import {UpdateError, UpdateMessage} from '../components/UI/UpdateError';
 import {toNanoMINA} from './mina';
 import {DEFAULT_VALID_UNTIL_FIELD, TRANSACTIONS_TABLE_ITEMS_PER_PAGE, MINIMUM_FEE} from './const';
 import {VALIDATORS_TABLE_ITEMS_PER_PAGE} from './const/transactions';
@@ -150,7 +150,7 @@ export const electronAlerts = async () => {
       if (!alerts.includes('CHECK_FOR_UPDATE_SUCCESS')) {
         const macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
         if (macosPlatforms.includes(window.navigator.platform)) {
-          toast.info(UpdateError({version}), {
+          toast.info(UpdateMessage({version}), {
             toastId: 'CHECK_FOR_UPDATE_SUCCESS',
             autoClose: 10000,
           });
@@ -167,7 +167,7 @@ export const electronAlerts = async () => {
       }
     });
     ipcOn('UPDATE_ERROR', () => {
-      toast.error('There was an error while updating the app', {
+      toast.error(UpdateError, {
         toastId: 'UPDATE_ERROR',
         autoClose: false,
       });
