@@ -9,7 +9,7 @@ import BackupWallet from '../modals/BackupWallet';
 import {INetworkData} from '/@/types';
 import {getPassphrase} from '/@/tools';
 import {useRecoilState} from 'recoil';
-import {networkState} from '/@/store';
+import {networkState, privacyModeState} from '/@/store';
 import {ConnectedZkapps} from './ConnectedZkapps';
 import {NetConfig, sendResponse} from '/@/tools/mina-zkapp-bridge';
 import isElectron from 'is-electron';
@@ -38,7 +38,11 @@ export default function NetworkSettings({
   const {settings, saveSettings, availableNetworks} = useNetworkSettingsContext();
   const navigate = useNavigate();
   const [{selectedNetwork}, setNetworkState] = useRecoilState(networkState);
+  const [privacyMode, setPrivacyMode] = useRecoilState(privacyModeState);
 
+  const togglePrivacyMode = () => {
+    setPrivacyMode({...privacyMode, active: !privacyMode.active});
+  };
   const defaultNetworkValue =
     availableNetworks.length > 1
       ? !settings?.label
@@ -122,7 +126,17 @@ export default function NetworkSettings({
                 </div>
               </div>
             )}
-
+            <div className="flex flex-row justify-between items-center">
+              <label className="text-start">Privacy mode</label>
+              <Form>
+                <Form.Check
+                  type={'switch'}
+                  id={'privacy-toggle'}
+                  defaultChecked={privacyMode.active}
+                  onClick={togglePrivacyMode}
+                />
+              </Form>
+            </div>
             <div className="flex flex-row justify-between items-center">
               <label className="text-start">Network</label>
               <Form.Select

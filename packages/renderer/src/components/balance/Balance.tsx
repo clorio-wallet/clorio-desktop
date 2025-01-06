@@ -14,14 +14,15 @@ import {BalanceContext} from '../../contexts/balance/BalanceContext';
 import {balanceTooltip} from './util';
 import CustomSkeleton from '../CustomSkeleton';
 import Truncate from 'react-truncate-inside';
-import { useRecoilValue } from 'recoil';
-import { walletState } from '/@/store';
+import {useRecoilValue} from 'recoil';
+import {privacyModeState, walletState} from '/@/store';
 
 const Balance = () => {
   const wallet = useRecoilValue(walletState);
   const {address} = wallet;
   const textRef = useRef(null);
   const bigTextRef = useRef(null);
+  const {active, fields} = useRecoilValue(privacyModeState);
 
   const [width, setwidth] = useState(0);
   const [widthBigText, setwidthBigText] = useState(0);
@@ -102,6 +103,9 @@ const Balance = () => {
     }
   };
 
+  const hideBalance = active && fields.includes('balance');
+  const hideAddress = active && fields.includes('address');
+
   const storedUserBalance =
     (balance?.balances[address] && balance?.balances[address].unconfirmedTotal) || 0;
   const userBalance =
@@ -148,10 +152,14 @@ const Balance = () => {
                   >
                     <div className="flex flex-row">
                       <h5 className="selectable-text">
-                        <Truncate
-                          text={address}
-                          width={widthBigText || 1000}
-                        />
+                        {hideAddress ? (
+                          '* * * * * *'
+                        ) : (
+                          <Truncate
+                            text={address}
+                            width={widthBigText || 1000}
+                          />
+                        )}
                       </h5>
                     </div>
                   </CustomSkeleton>
@@ -171,7 +179,9 @@ const Balance = () => {
                   >
                     {balanceError
                       ? 'Not available'
-                      : renderBalance({balanceData, balanceLoading, userBalance})}
+                      : hideBalance
+                        ? '* * * * * *'
+                        : renderBalance({balanceData, balanceLoading, userBalance})}
                   </h5>
                 </CustomSkeleton>
               </div>
@@ -188,13 +198,15 @@ const Balance = () => {
                     <h5 data-tip={balanceTooltip(balanceData)}>
                       {tickerError
                         ? 'Not available'
-                        : userBalanceToSymbolValue({
-                            tickerData,
-                            tickerLoading,
-                            userBalance,
-                            symbol: 'BTC',
-                            ticker: 'BTCMINA',
-                          })}
+                        : hideBalance
+                          ? '* * * * * *'
+                          : userBalanceToSymbolValue({
+                              tickerData,
+                              tickerLoading,
+                              userBalance,
+                              symbol: 'BTC',
+                              ticker: 'BTCMINA',
+                            })}
                     </h5>
                   </CustomSkeleton>
                 </span>
@@ -212,13 +224,15 @@ const Balance = () => {
                     <h5 data-tip={balanceTooltip(balanceData)}>
                       {tickerError
                         ? 'Not available'
-                        : userBalanceToSymbolValue({
-                            tickerData,
-                            tickerLoading,
-                            userBalance,
-                            symbol: 'USDT',
-                            ticker: 'USDTMINA',
-                          })}
+                        : hideBalance
+                          ? '* * * * * *'
+                          : userBalanceToSymbolValue({
+                              tickerData,
+                              tickerLoading,
+                              userBalance,
+                              symbol: 'USDT',
+                              ticker: 'USDTMINA',
+                            })}
                     </h5>
                   </CustomSkeleton>
                 </span>
