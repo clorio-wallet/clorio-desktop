@@ -40,8 +40,8 @@ const Button = ({
     style === 'standard'
       ? 'button non-selectable-text'
       : style === 'primary'
-      ? `primary ${disabled ? 'primary disabled' : ''}`
-      : '';
+        ? `primary ${disabled ? 'primary disabled' : ''}`
+        : '';
 
   const button = (
     <div

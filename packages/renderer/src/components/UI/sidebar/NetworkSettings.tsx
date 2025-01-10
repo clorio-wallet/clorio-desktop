@@ -13,6 +13,7 @@ import {networkState, privacyModeState} from '/@/store';
 import {ConnectedZkapps} from './ConnectedZkapps';
 import {NetConfig, sendResponse} from '/@/tools/mina-zkapp-bridge';
 import isElectron from 'is-electron';
+import {PrivacyOptions} from './PrivacyOptions';
 
 export default function NetworkSettings({
   currentNetwork,
@@ -128,14 +129,16 @@ export default function NetworkSettings({
             )}
             <div className="flex flex-row justify-between items-center">
               <label className="text-start">Privacy mode</label>
-              <Form>
-                <Form.Check
-                  type={'switch'}
-                  id={'privacy-toggle'}
-                  defaultChecked={privacyMode.active}
-                  onClick={togglePrivacyMode}
-                />
-              </Form>
+              <Form.Check
+                type={'switch'}
+                id={'privacy-toggle'}
+                defaultChecked={privacyMode.active}
+                onClick={togglePrivacyMode}
+              />
+            </div>
+            <div className="flex flex-row justify-between items-center">
+              <label className="text-start">Privacy mode options</label>
+              <PrivacyOptions />
             </div>
             <div className="flex flex-row justify-between items-center">
               <label className="text-start">Network</label>
