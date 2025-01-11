@@ -24,13 +24,13 @@ const Balance = () => {
   const bigTextRef = useRef(null);
   const {active, fields} = useRecoilValue(privacyModeState);
 
-  const [width, setwidth] = useState(0);
-  const [widthBigText, setwidthBigText] = useState(0);
+  const [width, setWidth] = useState(0);
+  const [widthBigText, setWidthBigText] = useState(0);
 
   useEffect(() => {
-    if (textRef) {
+    if (textRef.current) {
       const observer = new ResizeObserver(entries => {
-        setwidth(entries[0].contentRect.width - 150);
+        setWidth(entries[0].contentRect.width - 150);
       });
       observer.observe(textRef.current);
       return () => textRef.current && observer.unobserve(textRef.current);
@@ -38,16 +38,15 @@ const Balance = () => {
   }, []);
 
   useEffect(() => {
-    if (bigTextRef) {
+    if (bigTextRef.current) {
       const observer = new ResizeObserver(entries => {
-        setwidthBigText(entries[0].contentRect.width - 150);
+        setWidthBigText(entries[0].contentRect.width - 150);
       });
       observer.observe(bigTextRef.current);
       return () => bigTextRef.current && observer.unobserve(bigTextRef.current);
     }
   }, []);
 
-  // const [userBalance, setUserBalance] = useState<number>(0);
   const {
     addBalance,
     setBalanceContext,
@@ -55,11 +54,13 @@ const Balance = () => {
     setShouldBalanceUpdate,
     balanceData: balance,
   } = useContext<Partial<IBalanceContext>>(BalanceContext);
+
   const {
     data: tickerData,
     loading: tickerLoading,
     error: tickerError,
   } = useQuery<ITicker>(GET_TICKER);
+
   const {
     data: balanceData,
     loading: balanceLoading,
@@ -75,7 +76,6 @@ const Balance = () => {
     pollInterval: DEFAULT_QUERY_REFRESH_INTERVAL,
     onCompleted: data => {
       if (addBalance && data) {
-        // setBalanceContext(data?.accountByKey?.balance || {});
         addBalance(address, data?.accountByKey?.balance || {});
       }
     },
@@ -83,7 +83,6 @@ const Balance = () => {
 
   useEffect(() => {
     refetchBalance();
-    // If balance is available set it inside the component state and the balance context
     if (balanceData?.accountByKey?.balance) {
       if (setBalanceContext) {
         addBalance(address, balanceData?.accountByKey?.balance || {});
@@ -91,9 +90,6 @@ const Balance = () => {
     }
   }, [shouldBalanceUpdate, balanceData]);
 
-  /**
-   * If balance update is required (shouldBalanceUpdate) refetch it
-   */
   const refetchBalance = async (newAddress?: string) => {
     if (shouldBalanceUpdate) {
       await balanceRefetch({publicKey: newAddress || address});
@@ -281,10 +277,14 @@ const Balance = () => {
                   >
                     <div className="flex flex-row">
                       <h5 className="selectable-text">
-                        <Truncate
-                          text={address}
-                          width={width || 1000}
-                        />
+                        {hideAddress ? (
+                          '* * * * * *'
+                        ) : (
+                          <Truncate
+                            text={address}
+                            width={width || 1000}
+                          />
+                        )}
                       </h5>
                     </div>
                   </CustomSkeleton>
@@ -307,7 +307,9 @@ const Balance = () => {
                 >
                   {balanceError
                     ? 'Not available'
-                    : renderBalance({balanceData, balanceLoading, userBalance})}
+                    : hideBalance
+                      ? '* * * * * *'
+                      : renderBalance({balanceData, balanceLoading, userBalance})}
                 </h6>
               </CustomSkeleton>
             </div>
@@ -327,13 +329,15 @@ const Balance = () => {
                   >
                     {tickerError
                       ? 'Not available'
-                      : userBalanceToSymbolValue({
-                          tickerData,
-                          tickerLoading,
-                          userBalance,
-                          symbol: 'BTC',
-                          ticker: 'BTCMINA',
-                        })}
+                      : hideBalance
+                        ? '* * * * * *'
+                        : userBalanceToSymbolValue({
+                            tickerData,
+                            tickerLoading,
+                            userBalance,
+                            symbol: 'BTC',
+                            ticker: 'BTCMINA',
+                          })}
                   </h6>
                 </CustomSkeleton>
               </span>

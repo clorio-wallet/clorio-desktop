@@ -32,7 +32,8 @@ export const PrivacyOptions = () => {
     <>
       <Button
         onClick={() => setShowModal(true)}
-        text="Open"
+        text="Show"
+        className="link-button custom-delegate-button purple-text align-end  no-padding"
       />
 
       <ModalContainer
@@ -46,21 +47,28 @@ export const PrivacyOptions = () => {
             <hr />
           </div>
           <Form>
-            <ul>
+            <div className="w-100 flex flex-col">
               {OPTIONS.map(option => (
-                <li key={option}>
-                  {option}
-                  <Form.Check
-                    type={'switch'}
-                    id={`privacy-toggle-${option}`}
-                    defaultChecked={privacyMode.fields.includes(
-                      IOPTIONS[option as keyof typeof IOPTIONS],
-                    )}
+                <>
+                  <div
+                    key={option}
                     onClick={() => toggleOption(IOPTIONS[option as keyof typeof IOPTIONS])}
-                  />
-                </li>
+                    className="flex flex-row w-100 justify-between"
+                  >
+                    {option}
+                    <Form.Check
+                      type={'switch'}
+                      id={`privacy-toggle-${option}`}
+                      checked={privacyMode.fields.includes(
+                        IOPTIONS[option as keyof typeof IOPTIONS],
+                      )}
+                      onClick={() => toggleOption(IOPTIONS[option as keyof typeof IOPTIONS])}
+                    />
+                  </div>
+                  <hr />
+                </>
               ))}
-            </ul>
+            </div>
           </Form>
         </div>
       </ModalContainer>
