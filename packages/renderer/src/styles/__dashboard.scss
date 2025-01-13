@@ -46,6 +46,9 @@
 
 .selectable-text {
   -webkit-user-select: text;
+  *{
+    -webkit-user-select: text;
+  }
 }
 
 .non-selectable-text {
