@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { toast } from 'react-toastify';
-import { deriveAccountFromMnemonic } from '/@/tools';
-import { signTransaction } from '/@/tools/utils';
+import {useState} from 'react';
+import {toast} from 'react-toastify';
+import {deriveAccountFromMnemonic} from '/@/tools';
+import {signTransaction} from '/@/tools/utils';
 import Button from '../../UI/Button';
-import { ModalContainer } from '../../UI/modals';
+import {ModalContainer} from '../../UI/modals';
 import PasswordDecrypt from '../../PasswordDecrypt';
+import GenerateTransactionResult from './GenerateTransactionResult';
 
 enum ModalStates {
   INITIAL,
@@ -42,7 +43,7 @@ interface IGenerateTransactionProps {
   };
 }
 
-const GenerateTransaction = ({ wallet, transactionData }: IGenerateTransactionProps) => {
+const GenerateTransaction = ({wallet, transactionData}: IGenerateTransactionProps) => {
   const [showModal, setShowModal] = useState<ModalStates>(ModalStates.INITIAL);
   const isLedgerEnabled = wallet.ledger;
   const [signingResult, setSigningResult] = useState<ISignedTransactionData | undefined>();
@@ -53,7 +54,7 @@ const GenerateTransaction = ({ wallet, transactionData }: IGenerateTransactionPr
 
   const generateTransaction = async (passphrase: string) => {
     try {
-      const { nonce, receiverAddress, fee, amount } = transactionData;
+      const {nonce, receiverAddress, fee, amount} = transactionData;
       const derivedData = await deriveAccountFromMnemonic(passphrase.trim(), wallet.accountNumber);
       if (derivedData) {
         const signedPayment = await signTransaction(derivedData.priKey, {
@@ -75,7 +76,6 @@ const GenerateTransaction = ({ wallet, transactionData }: IGenerateTransactionPr
       console.error(e);
     }
   };
-
   return (
     <>
       {!isLedgerEnabled && (
@@ -110,6 +110,11 @@ const GenerateTransaction = ({ wallet, transactionData }: IGenerateTransactionPr
               }
             />
           </ModalContainer>
+          <GenerateTransactionResult
+            show={showModal === ModalStates.RESULT}
+            onClose={() => setShowModal(ModalStates.INITIAL)}
+            transactionResult={signingResult}
+          />
         </div>
       )}
     </>
