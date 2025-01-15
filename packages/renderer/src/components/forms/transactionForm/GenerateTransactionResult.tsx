@@ -1,5 +1,8 @@
 import {ModalContainer} from '../../UI/modals';
+import Button from '../../UI/Button';
 import {ISignedTransactionData} from './GenerateTransaction';
+import { Copy } from 'react-feather';
+import { copyToClipboard } from '/@/tools';
 
 interface IGenerateTransactionResult {
   transactionResult?: ISignedTransactionData;
@@ -56,6 +59,14 @@ export default function GenerateTransactionResult({
             </p>
           </div>
         </div>
+        <Button
+          className="button mt-4"
+          onClick={() => copyToClipboard(JSON.stringify(transactionResult))}
+          style='primary'
+          text="Copy"
+          appendIcon
+          icon={<Copy />}
+        />
       </ModalContainer>
     </div>
   );
