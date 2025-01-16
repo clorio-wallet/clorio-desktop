@@ -46,7 +46,6 @@ import {IBalanceQueryResult} from '/@/components/balance/BalanceTypes';
 import {useRecoilValue} from 'recoil';
 import {deeplinkState, walletState} from '/@/store';
 import {DeeplinkType} from '/@/hooks/useDeeplinkHandler';
-import GenerateTransaction from '/@/components/forms/transactionForm/GenerateTransaction';
 
 interface IProps {
   sessionData: IWalletData;
@@ -438,11 +437,6 @@ function SendTX(props: IProps) {
               <BroadcastTransaction />
             )}
           </div>
-          <GenerateTransaction
-            transactionData={transactionData}
-            wallet={wallet}
-            privateKey={privateKey}
-          />
           <ModalContainer
             show={showModal === ModalStates.NONCE}
             close={closeNonceModal}
