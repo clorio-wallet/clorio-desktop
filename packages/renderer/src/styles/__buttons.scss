@@ -255,3 +255,52 @@
   padding-left: 0;
   padding-right: 0;
 }
+
+
+.greenButton {
+  line-height: 1.8rem;
+  border-radius: 9.5px;
+  display: inline-flex;
+  width: 80%;
+  line-height: 42px;
+  padding-bottom: 0px;
+  padding-top: 0px;
+  font-size: 1rem;
+  position: relative;
+  background-color: #18181b5c;
+  color: #f4f4f5;
+  transition: background-color 0.2s ease-in-out;
+  justify-content: center;
+  text-align: center;
+  font-weight: bold;
+  font-size: large;
+  cursor: default
+}
+
+.greenButton:hover {
+  background-color: #0c0c0d41;
+}
+
+.greenButton:before {
+  content: "";
+  position: absolute;
+  background: linear-gradient(
+    to right,
+    rgb(0, 220, 130),
+    rgb(54, 228, 218),
+    rgb(22, 167, 158)
+  );
+  inset: -2px;
+  z-index: -1;
+  border-radius: 12.5px;
+  transition: all 0.2s ease 0s;
+}
+
+.greenButton > * {
+  text-align: left;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  word-break: break-all;
+}

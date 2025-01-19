@@ -518,6 +518,24 @@ p {
   margin: 0 auto;
 }
 
+.bg-danger-alt{
+  background: #ff2e4a8a;
+  color: #ffc5cd !important;
+  font-weight: 400 !important;
+}
+
+.bg-success-alt{
+  background: #5EC56F8a;
+  color: #f4fff6 !important;
+  font-weight: 400 !important;
+}
+
+.bg-secondary-alt{
+  background: #f7cb058a;
+  color: #f4fff6 !important;
+  font-weight: 400 !important;
+}
+
 @media screen and (max-width: 600px) {
   .homepage-card {
     height: 100vh;

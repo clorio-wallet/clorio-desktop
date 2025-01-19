@@ -18,6 +18,9 @@ import wasm from 'vite-plugin-wasm';
 import {
   nodePolyfills,
 } from 'vite-plugin-node-polyfills';
+import {
+  viteSingleFile,
+} from 'vite-plugin-singlefile';
 
 const PACKAGE_ROOT = __dirname;
 const PROJECT_ROOT = join(PACKAGE_ROOT, '../..');
@@ -53,7 +56,7 @@ const config = {
     },
     emptyOutDir: true,
     reportCompressedSize: false,
-    publicDir:join(PACKAGE_ROOT, 'resources'),
+    publicDir: join(PACKAGE_ROOT, 'resources'),
   },
   test: {
     environment: 'happy-dom',
@@ -67,6 +70,7 @@ const config = {
     }),
     injectAppVersion(),
     nodePolyfills(),
+    viteSingleFile(),
   ],
   define: {
     'process.env': {

@@ -13,6 +13,8 @@ import {getTotalPages} from '../../../tools';
 import {useQuery} from '@apollo/client';
 import EpochBar from '../../UI/epochBar/EpochBar';
 import {useNetworkSettingsContext} from '/@/contexts/NetworkContext';
+import DataTable from 'react-data-table-component';
+import {columns, customStyles} from './StakeTableRows';
 
 interface IProps {
   error: any;
@@ -62,6 +64,7 @@ const StakeTable = ({
 
   const tableBody = () => {
     if (validators) {
+      console.log('🚀 ~ tableBody ~ validators:', validators);
       const filteredValidators = validators.filter(el =>
         el?.name?.toLowerCase().includes(searchBox),
       );
@@ -144,8 +147,26 @@ const StakeTable = ({
                 show={loading}
               >
                 <div id="transaction-table">
-                  <Table id="rwd-table-large">{tableBody()}</Table>
-                  &nbsp;
+                  <DataTable
+                    columns={columns(toggleModal, currentDelegate)}
+                    data={validators || []}
+                    // expandOnRowClicked
+                    // expandableRows
+                    // expandableIcon={() => <></>}
+                    highlightOnHover
+                    persistTableHead
+                    responsive
+                    subHeaderWrap
+                    customStyles={customStyles}
+                    conditionalRowStyles={[
+                      {
+                        when: row => row.priority === '1',
+                        style: {
+                          backgroundColor: 'rgb(255 254 231 / 22%)',
+                        },
+                      },
+                    ]}
+                  />
                   <ReactTooltip multiline={true} />
                 </div>
               </Spinner>

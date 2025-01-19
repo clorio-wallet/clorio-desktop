@@ -68,3 +68,4 @@ packages/mina-provider-master
 
 out/
 .eslintcache
+release*

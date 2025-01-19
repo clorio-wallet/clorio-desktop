@@ -1,8 +1,8 @@
 import {ChevronsUp} from 'react-feather';
 
-const WalletCreationTransaction = (index: number) => {
+const WalletCreationTransaction = () => {
   return (
-    <tr key={index}>
+    <tr>
       <td
         className="table-element table-hash w-100"
         colSpan={6}

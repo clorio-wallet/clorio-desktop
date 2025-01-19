@@ -41,3 +41,78 @@
 .zkapp-list-item:hover {
   margin-top: -5px;
 }
+
+.zkapp-explore-button {
+  font-size: 1.25rem;
+  font-weight: lighter;
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+
+.zkapp-explore-button-active {
+  font-size: 1.25rem;
+  font-weight: bolder;
+  border: 1px solid white;
+  border-radius: 10px;
+  background-color: #ffffff11;
+  padding: 5px 10px;
+}
+
+.zkapp-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 20%;
+  object-fit: cover;
+}
+
+.zkapp-name {
+  font-weight: lighter;
+  font-size: 15px;
+}
+
+.flex-start {
+  align-items: start;
+}
+
+.zkapp-modal-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 20%;
+  object-fit: cover;
+}
+
+.zkapp-modal-name {
+  max-height: 300px;
+  overflow-y: auto;
+  max-width: 450px;
+}
+
+.font-18 {
+  font-size: 18px;
+}
+
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
+.vertical-border-right {
+  border-right: 1px solid white;
+}
+
+.zkapp-description {
+  max-height: 300px;
+  overflow-y: auto;
+  max-width: 600px;
+  margin-top: 20px;
+}
+
+.zkapp-md{
+  white-space: pre-wrap;
+  background: none !important;
+  word-wrap: break-word;
+}
+
+.zkapp-label{
+  font-size: small;
+  opacity: .5;
+}

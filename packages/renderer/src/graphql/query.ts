@@ -71,6 +71,7 @@ export const GET_VALIDATORS = gql`
       website
       stakedSum
       priority
+      publicKey
     }
   }
 `;

@@ -111,3 +111,34 @@ a {
   font-size: large;
   line-height: initial;
 }
+
+.purple-hover {
+  color: #fff !important;
+  cursor: pointer;
+  transition: .3s;
+}
+
+.purple-hover:hover {
+  color: #9e8cff !important;
+  cursor: pointer;
+}
+
+.table-value-text {
+  font-size: 18px !important;
+}
+
+.medium-table-value-text {
+  font-size: 15px !important;
+}
+
+.small-table-value-text {
+  font-size: 13px !important;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.opacity-5 {
+  opacity: 0.5;
+}

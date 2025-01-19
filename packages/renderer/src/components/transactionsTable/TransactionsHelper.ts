@@ -59,10 +59,16 @@ export const transactionQueryRowToTableRow = (transactionRow: ITransactionQueryD
   };
 };
 
-export const formatUrl = (txId: string,url?: string) => {
+export const formatUrl = (txId: string, url?: string, isWallet?: boolean) => {
   if (url.includes('minascan.io')) {
+    if (isWallet) {
+      return `${url}account/${txId}`;
+    }
     return `${url}tx/${txId}`;
   } else {
+    if (isWallet) {
+      return `${url}wallet/${txId}`;
+    }
     return `${url}transaction/${txId}`;
   }
 };
