@@ -15,6 +15,7 @@ import {renderNetworkLabel} from './SidebarHelper';
 import {Repeat} from 'react-feather';
 import {walletState} from '/@/store';
 import {useRecoilState} from 'recoil';
+import {QrCodeReader} from '../../QRCode/QrCodeReaderModal';
 
 export default function AppSettings({
   toggleLoader,
@@ -98,6 +99,7 @@ export default function AppSettings({
   return (
     <div className="account-selector-container">
       <div className="flex flex-col items-center gap-2">
+        <QrCodeReader />
         <div className="flex flex-row items-center gap-2">
           <div>
             <Avatar

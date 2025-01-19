@@ -1,0 +1,51 @@
+.dropdown {
+  position: relative;
+  display: inline-block;
+  text-align: right;
+}
+
+.dropdown-toggle {
+  background-color: transparent;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  z-index: 4;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, display 0.3s ease-out;
+  display: none;
+}
+
+.dropdown-menu.open {
+  max-height: 500px;
+  display: block;
+}
+
+.dropdown-menu > div {
+  transition: .3s;
+  width: 100%;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.dropdown-menu > div:hover {
+  transition: .3s;
+  width: 100%;
+  background-color: #f1f1f133;
+}
+
+.dropdown-toggle::after{
+  display: none;
+}

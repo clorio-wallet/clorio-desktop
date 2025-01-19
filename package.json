@@ -97,6 +97,7 @@
     "eslint-plugin-react": "^7.33.2",
     "graphql": "15.5.0",
     "is-electron": "2.2.0",
+    "jimp": "^1.6.0",
     "js-sha256": "^0.10.1",
     "jspdf": "^2.5.1",
     "lottie-react": "^2.4.0",
@@ -105,13 +106,18 @@
     "nedb": "1.8.0",
     "nedb-promises": "^6.2.3",
     "pretty-print-json": "^3.0.0",
+    "qrcode-reader": "^1.0.4",
+    "qrcode.react": "^4.1.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.9.0",
     "react-dom": "^18.2.0",
     "react-feather": "^2.0.10",
+    "react-file-reader-input": "^2.0.0",
     "react-jdenticon": "^1.1.0",
     "react-loading-skeleton": "^3.3.1",
     "react-pro-sidebar": "^1.1.0-alpha.1",
+    "react-qr-reader": "^3.0.0-beta-1",
+    "react-qrcode-logo": "^3.0.0",
     "react-router-dom": "^6.16.0",
     "react-spinners": "^0.13.8",
     "react-toastify": "^9.1.3",
@@ -139,10 +145,14 @@
       "*.tsx",
       "public/**/*"
     ],
-    "protocols": [{
-      "name": "Clorio Wallet Protocol",
-      "schemes": ["mina"]
-    }],
+    "protocols": [
+      {
+        "name": "Clorio Wallet Protocol",
+        "schemes": [
+          "mina"
+        ]
+      }
+    ],
     "directories": {
       "buildResources": "assets"
     },

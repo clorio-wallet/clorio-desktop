@@ -17,6 +17,7 @@ const allowedRequestChannels: string[] = [
   'sign-fields',
   'verify-fields',
   'focus-clorio',
+  'share-url',
 ];
 
 const allowedResponseChannels = [
@@ -37,6 +38,7 @@ const allowedResponseChannels = [
   'signed-fields',
   'verified-fields',
   'focus-clorio',
+  'share-url',
 ];
 
 interface AddChainArgs {
@@ -104,6 +106,7 @@ const zkappIntegration = {
   signFields: (data: any) => sendIpcRequest('sign-fields', 'signed-fields', data),
   verifyFields: (data: any) => sendIpcRequest('verify-fields', 'verified-fields', data),
   focusClorio: () => sendIpcRequest('focus-clorio', 'focus-clorio'),
+  shareUrl: (url: string) => sendIpcRequest('share-url', 'share-url', url),
 };
 
 export default zkappIntegration;

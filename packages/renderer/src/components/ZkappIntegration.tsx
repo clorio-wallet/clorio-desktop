@@ -10,7 +10,7 @@ import {
   zkappState,
 } from '../store';
 import {toast} from 'react-toastify';
-import {useEffect} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import SignMessage from './UI/modals/zkAppIntegration/SignMessage';
 import ConfirmZkappPayment from './UI/modals/zkAppIntegration/ConfirmZkappPayment';
 import ConfirmZkappDelegation from './UI/modals/zkAppIntegration/ConfirmZkappDelegation';
@@ -19,6 +19,7 @@ import AddChain from './UI/modals/zkAppIntegration/AddChain';
 import ConfirmZkappTransaction from './UI/modals/zkAppIntegration/ConfirmZkappTransaction';
 import {ERROR_CODES} from '../tools/zkapp';
 import ConnectZkapp from './UI/modals/zkAppIntegration/ConnectZkapp';
+import QRCodeGenerator from './QRCode/QRCodeGenerator';
 
 export default function ZkappIntegration() {
   const wallet = useRecoilValue(walletState);
@@ -27,6 +28,9 @@ export default function ZkappIntegration() {
   const {address: sender} = wallet;
   const setZkappState = useSetRecoilState(zkappState);
   const config = useRecoilValue(configState);
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const qrCodeRef = useRef<{open: () => void}>(null);
+
   const [{availableNetworks, selectedNetwork, selectedNode}, setNetworkState] =
     useRecoilState(networkState);
 
@@ -123,6 +127,10 @@ export default function ZkappIntegration() {
 
         case 'clorio-verify-fields':
           await verifyFields(data);
+          break;
+
+        case 'clorio-share-url':
+          await shareUrl(data);
           break;
 
         default:
@@ -409,6 +417,14 @@ export default function ZkappIntegration() {
     sendResponse('clorio-verified-fields', verified);
   };
 
+  const shareUrl = async (url: any) => {
+    if (qrCodeRef.current) {
+      const deeplink = new URL(`mina://zkapp?URL=${url}`);
+      setQrCodeUrl(deeplink.toString());
+      qrCodeRef.current.open();
+    }
+  };
+
   return (
     <>
       <SignMessage />
@@ -418,6 +434,11 @@ export default function ZkappIntegration() {
       <ChangeNetwork />
       <AddChain />
       <ConnectZkapp />
+      <QRCodeGenerator
+        hideButton
+        url={qrCodeUrl}
+        ref={qrCodeRef}
+      />
     </>
   );
 }

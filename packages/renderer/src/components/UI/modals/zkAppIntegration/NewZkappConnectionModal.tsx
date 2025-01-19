@@ -4,6 +4,7 @@ import Button from '../../Button';
 import {ModalContainer} from '../ModalContainer';
 import {toast} from 'react-toastify';
 import {AlertOctagon} from 'react-feather';
+import ZkappConnectDisclaimer from '../../ZkappConnectDisclaimer';
 
 const initialZkappData = {
   name: '',
@@ -63,16 +64,7 @@ export default function NewZkappConnectionModal({
               setNewZkapp({...newZkapp, url: e.target.value});
             }}
           />
-          <div
-            className="alert alert-warning flex flex-row items-center justify-start gap-2"
-            role="alert"
-          >
-            <AlertOctagon />
-            <p className="small m-0">
-              Connect only to trusted zkapps. <br />
-              Do not enter your private keys on untrusted sites.
-            </p>
-          </div>
+          <ZkappConnectDisclaimer alt />
         </div>
         <Button
           text="Open"

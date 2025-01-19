@@ -7,6 +7,8 @@ interface IProps {
   show: boolean;
   className?: string;
   closeOnBackgroundClick?: boolean;
+  secondaryStyle?: boolean;
+  hideCloseButton?: boolean;
 }
 
 export const ModalContainer = ({
@@ -15,15 +17,25 @@ export const ModalContainer = ({
   show,
   className = '',
   closeOnBackgroundClick = true,
+  secondaryStyle = false,
+  hideCloseButton = false,
 }: IProps) => {
   return show ? (
-    <Hoc className="mx-auto first-place  animate__animated animate__fadeIn modal-wrapper">
+    <Hoc
+      className={`mx-auto first-place animate__animated animate__fadeIn modal-wrapper ${
+        secondaryStyle ? 'secondary-style' : ''
+      }`}
+    >
       <div
-        className="modal-background "
+        className="modal-background"
         onClick={closeOnBackgroundClick ? close : () => null}
       />
-      <div className={`glass-card px-5 py-5 z-100 modal-bg mx-5 ${className}`}>
-        {close && (
+      <div
+        className={`glass-card px-5 py-5 z-100 modal-bg mx-5 ${className} ${
+          secondaryStyle ? 'secondary-style-bg' : ''
+        }`}
+      >
+        {close && !hideCloseButton && (
           <div
             className="modal-close-button cursor-pointer"
             onClick={close}

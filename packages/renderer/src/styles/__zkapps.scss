@@ -41,3 +41,46 @@
 .zkapp-list-item:hover {
   margin-top: -5px;
 }
+
+.zkapp-image {
+  display: flex;
+  justify-content: space-between;
+  div {
+    width: 100px;
+  }
+  img {
+    width: 100px;
+    padding: 0px 37px;
+  }
+  .zkapp-qr-code-icon {
+    width: 20px;
+    padding: 0px;
+  }
+}
+
+.zkapp-menu {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  justify-content: end;
+}
+
+.zkapp-card-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.zkapp-dropdown-item {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.zkapp-dropdown-item-danger{
+  color: rgb(251, 121, 121) !important;
+  svg{
+    color: rgb(251, 121, 121) ;
+  }
+}

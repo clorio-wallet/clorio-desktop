@@ -4,6 +4,7 @@ import {connectZkappState, connectedSitesState, walletState} from '/@/store';
 import Button from '../../Button';
 import {sendResponse} from '/@/tools/mina-zkapp-bridge';
 import {AlertOctagon} from 'react-feather';
+import ZkappConnectDisclaimer from '../../ZkappConnectDisclaimer';
 
 export default function ConnectZkapp() {
   const wallet = useRecoilValue(walletState);
@@ -44,13 +45,7 @@ export default function ConnectZkapp() {
         <div className="flex flex-col w-100">
           <h4>This website would like to view account:</h4>
           <p className="data-field mb-4 mt-2">{source}</p>
-          <div
-            className="alert alert-warning flex flex-row items-center gap-2"
-            role="alert"
-          >
-            <AlertOctagon />
-            <p className="small m-0">{'For security reasons connect only to trusted zkapps'}</p>
-          </div>
+          <ZkappConnectDisclaimer />
         </div>
         <div className="flex mt-2 gap-4 confirm-transaction-data sm-flex-reverse">
           <Button

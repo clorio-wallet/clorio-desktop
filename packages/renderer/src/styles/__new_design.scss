@@ -371,6 +371,47 @@ p {
   max-width: 100px;
 }
 
+.dropzone {
+  margin-top: 50px;
+  border: 2px dashed #ccc;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: border-color 0.3s, background-color 0.3s;
+  // background-color: #f9f9f9;
+}
+
+.dropzone.dragging {
+  border-color: #000;
+  background-color: #e0e0e0;
+}
+
+.dropzone:hover {
+  border-color: #888;
+}
+
+.max-w-800{
+  max-width: 800px;
+}
+
+.qr-code-data-row{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 150px;
+  p{
+    line-break: anywhere;
+    text-align: right;
+    margin-bottom: 0;
+  }
+}
+
 @media screen and (max-width: 850px) {
   .md-flex-col {
     flex-direction: column !important;
