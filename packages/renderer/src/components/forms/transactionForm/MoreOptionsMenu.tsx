@@ -19,10 +19,10 @@ export default function MoreOptionsMenu({transactionData}: {transactionData: ITr
     <>
       <Dropdown data-bs-theme="dark">
         <Dropdown.Toggle
-          id="dropdown-button-dark-example1"
           variant=""
+          className='btn btn-outline-light mt-1 more-options-button'
         >
-          Other
+          More options
         </Dropdown.Toggle>
 
         <Dropdown.Menu>

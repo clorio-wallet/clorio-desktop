@@ -209,7 +209,7 @@ const TransactionForm = ({
             />
           </Col>
         </Row>
-        <div className="w-100 py-3 mx-auto flex flex-row">
+        <div className="w-100 py-3 mx-auto flex flex-row gap-4">
           <div className="w-50">
             <MoreOptionsMenu transactionData={transactionData} />
           </div>

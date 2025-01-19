@@ -371,6 +371,17 @@ p {
   max-width: 100px;
 }
 
+.more-options-button{
+  width: 80%;
+  border: none !important;
+}
+
+.more-options-button:hover,.more-options-button:active, .more-options-button:focus,.more-options-button:focus-visible{
+  background-color: rgba(156, 137, 255, 0.1333333333) !important;
+  color: white !important;
+  border: none !important;
+}
+
 @media screen and (max-width: 850px) {
   .md-flex-col {
     flex-direction: column !important;
