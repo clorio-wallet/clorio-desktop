@@ -9,6 +9,8 @@ import {join, resolve} from 'node:path';
 const {MinaLedgerJS} = require('mina-ledger-js');
 const TransportNodeHid = require('@ledgerhq/hw-transport-node-hid-singleton');
 import {shell} from 'electron';
+import {autoUpdater} from 'electron-updater';
+import { existsSync, mkdirSync } from 'node:fs';
 
 const isMac = process.platform === 'darwin';
 let browserWindow: BrowserWindow;
@@ -75,6 +77,17 @@ const template = [
 ];
 
 async function createWindow() {
+  const cacheDir = join(app.getPath('userData'), 'pending');
+  if (!existsSync(cacheDir)) {
+    mkdirSync(cacheDir, { recursive: true });
+  }
+
+  autoUpdater.setFeedURL({
+    provider: 'github',
+    owner: import.meta.env.VITE_GITHUB_OWNER,
+    repo: import.meta.env.VITE_GITHUB_REPO,
+  });
+
   browserWindow = new BrowserWindow({
     width: 1600,
     height: 1000,
@@ -130,6 +143,38 @@ async function createWindow() {
      * @see https://github.com/nodejs/node/issues/12682
      * @see https://github.com/electron/electron/issues/6869
      */
+
+
+  ipcMain.on('CHECK_FOR_UPDATE_PENDING', async () => {
+    try {
+      await autoUpdater.checkForUpdates();
+    } catch (error) {
+      console.error('Update check failed:', error);
+      browserWindow?.webContents.send('UPDATE_ERROR');
+    }
+  });
+
+  autoUpdater.on('error', error => {
+    console.error('Update error:', error);
+    browserWindow?.webContents.send('UPDATE_ERROR');
+  });
+
+  autoUpdater.on('update-available', async info => {
+    try {
+      browserWindow?.webContents.send('CHECK_FOR_UPDATE_SUCCESS', info.version);
+      await autoUpdater.downloadUpdate();
+    } catch (error) {
+      console.error('Download failed:', error);
+      browserWindow?.webContents.send('UPDATE_ERROR');
+    }
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    browserWindow.webContents.send('DOWNLOAD_UPDATE_SUCCESS');
+    autoUpdater.quitAndInstall();
+  });
+
+  autoUpdater.checkForUpdatesAndNotify();
     await browserWindow.loadFile(resolve(__dirname, '../../renderer/dist/index.html'));
   }
   browserWindow.removeMenu();

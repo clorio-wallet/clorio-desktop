@@ -9,7 +9,7 @@ import {formatNetworks, useNetworkSettingsContext} from './contexts/NetworkConte
 import {BalanceContextProvider} from './contexts/balance/BalanceContext';
 import {useEffect} from 'react';
 import {WalletProvider} from './contexts/WalletContext';
-import {clearSession} from './tools';
+import {clearSession, electronAlerts} from './tools';
 import {networkState} from './store';
 import {useRecoilState} from 'recoil';
 
@@ -20,6 +20,7 @@ function App() {
   useEffect(() => {
     clearSession();
     getNetworks();
+    electronAlerts();
   }, []);
 
   const selectDefaultNetwork = (networks: string[]) => {
