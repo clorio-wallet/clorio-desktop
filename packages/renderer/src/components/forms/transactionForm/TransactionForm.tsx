@@ -11,6 +11,7 @@ import Big from 'big.js';
 import {ArrowRight} from 'react-feather';
 import {useRecoilValue, useSetRecoilState} from 'recoil';
 import {deeplinkState} from '/@/store';
+import MoreOptionsMenu from './MoreOptionsMenu';
 
 interface IProps {
   transactionData: ITransactionData;
@@ -208,14 +209,19 @@ const TransactionForm = ({
             />
           </Col>
         </Row>
-        <div className="w-50 py-3 mx-auto">
-          <Button
-            onClick={() => checkFieldsAndProceed(transactionData, nextStep)}
-            text="Preview"
-            style="primary"
-            icon={<ArrowRight />}
-            appendIcon
-          />
+        <div className="w-100 py-3 mx-auto flex flex-row gap-4">
+          <div className="w-50">
+            <MoreOptionsMenu transactionData={transactionData} />
+          </div>
+          <div className="w-50">
+            <Button
+              onClick={() => checkFieldsAndProceed(transactionData, nextStep)}
+              text="Preview"
+              style="primary"
+              icon={<ArrowRight />}
+              appendIcon
+            />
+          </div>
         </div>
       </div>
     </div>

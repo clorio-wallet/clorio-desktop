@@ -5,13 +5,15 @@ import Input from './UI/input/Input';
 import {Col, Row} from 'react-bootstrap';
 import Button from './UI/Button';
 import {ArrowRight} from 'react-feather';
+import {ReactNode} from 'react';
 
 interface IPasswordDecrypt {
   onSuccess: (passphrase: string) => void;
   onClose: () => void;
+  text?: string | ReactNode;
 }
 
-export default function PasswordDecrypt({onSuccess, onClose}: IPasswordDecrypt) {
+export default function PasswordDecrypt({onSuccess, onClose, text}: IPasswordDecrypt) {
   const [password, setPassword] = useState('');
   const {decryptData} = useSecureStorage();
 
@@ -45,7 +47,7 @@ export default function PasswordDecrypt({onSuccess, onClose}: IPasswordDecrypt) 
 
   return (
     <div>
-      <p className="mt-3 text-center">Insert your password to proceed</p>
+      <p className="mt-3 text-center">{text || 'Insert your password to proceed'}</p>
       <div className="password-input">
         <Input
           type="text"

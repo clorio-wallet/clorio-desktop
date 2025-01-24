@@ -3,7 +3,7 @@ import isElectron from 'is-electron';
 import {toast} from 'react-toastify';
 import BadWords from 'bad-words';
 import Censorify from 'censorify-it';
-import {UpdateError} from '../components/UI/UpdateError';
+import {UpdateError, UpdateMessage} from '../components/UI/UpdateError';
 import {toNanoMINA} from './mina';
 import {DEFAULT_VALID_UNTIL_FIELD, TRANSACTIONS_TABLE_ITEMS_PER_PAGE, MINIMUM_FEE} from './const';
 import {VALIDATORS_TABLE_ITEMS_PER_PAGE} from './const/transactions';
@@ -142,15 +142,15 @@ export const electronAlerts = async () => {
     let updateChecked = false;
     // @ts-ignore
     const ipcOn = window.ipcBridge.on;
-    // @ts-ignore
-    const ipcSend = window.ipcBridge.send;
-    ipcSend('CHECK_FOR_UPDATE_PENDING');
+    // TODO: Implement search for updates
+    // const ipcSend = window.ipcBridge.send;
+    // ipcSend('CHECK_FOR_UPDATE_PENDING');
     ipcOn('CHECK_FOR_UPDATE_SUCCESS', async (_: any, version: string) => {
       updateChecked = true;
       if (!alerts.includes('CHECK_FOR_UPDATE_SUCCESS')) {
         const macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
         if (macosPlatforms.includes(window.navigator.platform)) {
-          toast.info(UpdateError({version}), {
+          toast.info(UpdateMessage({version}), {
             toastId: 'CHECK_FOR_UPDATE_SUCCESS',
             autoClose: 10000,
           });
@@ -167,12 +167,11 @@ export const electronAlerts = async () => {
       }
     });
     ipcOn('UPDATE_ERROR', () => {
-      if (!alerts.includes('UPDATE_ERROR') && updateChecked) {
-        toast.error('There was an error while updating the app', {
-          toastId: 'UPDATE_ERROR',
-        });
-        alerts.push('UPDATE_ERROR');
-      }
+      toast.error(UpdateError, {
+        toastId: 'UPDATE_ERROR',
+        autoClose: false,
+      });
+      alerts.push('UPDATE_ERROR');
     });
     ipcOn('DOWNLOAD_UPDATE_SUCCESS', () => {
       if (!alerts.includes('DOWNLOAD_UPDATE_SUCCESS')) {

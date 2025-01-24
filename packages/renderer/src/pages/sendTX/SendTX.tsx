@@ -43,7 +43,7 @@ import Stepper from '/@/components/UI/stepper/Stepper';
 import TransactionAuthentication from '/@/components/transactionAuthentication/TransactionAuthentication';
 import {signTransaction} from '/@/tools/utils';
 import {IBalanceQueryResult} from '/@/components/balance/BalanceTypes';
-import {useRecoilState, useRecoilValue} from 'recoil';
+import {useRecoilValue} from 'recoil';
 import {deeplinkState, walletState} from '/@/store';
 import {DeeplinkType} from '/@/hooks/useDeeplinkHandler';
 
@@ -66,6 +66,7 @@ function SendTX(props: IProps) {
   const [transactionData, setTransactionData] = useState<ITransactionData>(initialTransactionData);
   const [ledgerTransactionData, setLedgerTransactionData] = useState<string>('');
   const [storedPassphrase, setStoredPassphrase] = useState('');
+
   const {getBalance, setShouldBalanceUpdate} = useContext<Partial<IBalanceContext>>(BalanceContext);
   // const {wallet} = useWallet();
   const wallet = useRecoilValue(walletState);
