@@ -5,5 +5,16 @@ import {walletState} from './wallet';
 import {connectedSitesState} from './connectedSites';
 import {connectZkappState} from './connectZkapp';
 import {deeplinkState} from './deeplink';
+import {privacyModeState} from './privacy';
 
-export {configState, zkappState, networkState, walletState, connectedSitesState, connectZkappState,deeplinkState};
+export {
+  configState,
+  zkappState,
+  networkState,
+  walletState,
+  connectedSitesState,
+  connectZkappState,
+  deeplinkState,
+  privacyModeState,
+  Ï,
+};
