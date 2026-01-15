@@ -1,4 +1,4 @@
-import {createContext, useState, useEffect} from 'react';
+import {createContext, useState, useEffect, useCallback, useMemo} from 'react';
 import {ReactChild} from 'react';
 import {IBalanceContext} from './BalanceTypes';
 const initialBalance = {
@@ -41,57 +41,75 @@ export const BalanceContextProvider = (props: IProps) => {
     }
   }, []);
 
-  const setBalanceContext = (address: string, balance: IBalance) => {
-    const updatedBalances = {...balanceData.balances};
-    updatedBalances[address] = balance;
-    setBalanceData({balances: updatedBalances});
-
-    // Save balances to localStorage
-    localStorage.setItem('balances', JSON.stringify(updatedBalances));
-  };
-
-  const getBalance = (address: string) => {
-    return balanceData.balances[address];
-  };
-
-  const addBalance = (address: string, balance: IBalance) => {
-    const updatedBalances = {...balanceData.balances};
-
-    // Check if the address is already stored, and if so, update the balance.
-    // eslint-disable-next-line no-prototype-builtins
-    if (updatedBalances?.hasOwnProperty(address)) {
+  const setBalanceContext = useCallback((address: string, balance: IBalance) => {
+    setBalanceData(prevData => {
+      const updatedBalances = {...prevData.balances};
       updatedBalances[address] = balance;
-    } else {
-      updatedBalances[address] = balance;
-    }
+      // Save balances to localStorage
+      localStorage.setItem('balances', JSON.stringify(updatedBalances));
+      return {balances: updatedBalances};
+    });
+  }, []);
 
-    setBalanceData({balances: updatedBalances});
+  const getBalance = useCallback(
+    (address: string) => {
+      return balanceData.balances[address];
+    },
+    [balanceData.balances],
+  );
 
-    // Save balances to localStorage
-    localStorage.setItem('balances', JSON.stringify(updatedBalances));
-  };
+  const addBalance = useCallback((address: string, balance: IBalance) => {
+    setBalanceData(prevData => {
+      const updatedBalances = {...prevData.balances};
 
-  const removeBalance = (address: string) => {
-    const updatedBalances = {...balanceData.balances};
-    delete updatedBalances[address];
-    setBalanceData({balances: updatedBalances});
+      // Check if the address is already stored, and if so, update the balance.
+      // eslint-disable-next-line no-prototype-builtins
+      if (updatedBalances?.hasOwnProperty(address)) {
+        updatedBalances[address] = balance;
+      } else {
+        updatedBalances[address] = balance;
+      }
 
-    // Save balances to localStorage
-    localStorage.setItem('balances', JSON.stringify(updatedBalances));
-  };
+      // Save balances to localStorage
+      localStorage.setItem('balances', JSON.stringify(updatedBalances));
+      return {balances: updatedBalances};
+    });
+  }, []);
 
-  const balanceContextValue = {
-    shouldBalanceUpdate,
-    balanceData,
-    getBalance: (address: string) => balanceData.balances[address] || initialBalance, // Return initialBalance if the address is not found
-    setBalanceContext,
-    addBalance,
-    removeBalance,
-    setShouldBalanceUpdate,
-  };
+  const removeBalance = useCallback((address: string) => {
+    setBalanceData(prevData => {
+      const updatedBalances = {...prevData.balances};
+      delete updatedBalances[address];
+      // Save balances to localStorage
+      localStorage.setItem('balances', JSON.stringify(updatedBalances));
+      return {balances: updatedBalances};
+    });
+  }, []);
+
+  const balanceContextValue = useMemo(
+    () => ({
+      shouldBalanceUpdate,
+      balanceData,
+      getBalance: (address: string) =>
+        balanceData.balances[address] || initialBalance, // Return initialBalance if the address is not found
+      setBalanceContext,
+      addBalance,
+      removeBalance,
+      setShouldBalanceUpdate,
+    }),
+    [
+      shouldBalanceUpdate,
+      balanceData,
+      setBalanceContext,
+      addBalance,
+      removeBalance,
+    ],
+  );
 
   return (
-    <BalanceContext.Provider value={balanceContextValue}>{props.children}</BalanceContext.Provider>
+    <BalanceContext.Provider value={balanceContextValue}>
+      {props.children}
+    </BalanceContext.Provider>
   );
 };
 
