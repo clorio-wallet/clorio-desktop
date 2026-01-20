@@ -12,6 +12,12 @@ import {WalletProvider} from './contexts/WalletContext';
 import {clearSession} from './tools';
 import {networkState} from './store';
 import {useRecoilState} from 'recoil';
+import * as React from 'react';
+
+// Dynamic import for DevTools to avoid build errors if the folder is ignored/missing
+const DevTools = React.lazy(() =>
+  import('./dev-tools/DevTools').catch(() => ({default: () => null})),
+);
 
 function App() {
   const {settings, setAvailableNetworks, saveSettings} = useNetworkSettingsContext();
@@ -84,6 +90,9 @@ function App() {
     <div className="App">
       <WalletProvider>
         <BalanceContextProvider>
+          <React.Suspense fallback={null}>
+            <DevTools />
+          </React.Suspense>
           <ApolloProvider client={apolloClient(selectedNode!)}>
             <LedgerContextProvider>
               <HashRouter>
