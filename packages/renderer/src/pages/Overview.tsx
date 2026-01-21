@@ -1,28 +1,26 @@
-import TransactionsTable from '../components/transactionsTable/TransactionsTable';
-import Hoc from '../components/UI/Hoc';
 import {useQuery} from '@apollo/client';
-import {useEffect, useState} from 'react';
-import {useContext} from 'react';
+import {useContext, useEffect, useState} from 'react';
+import {useRecoilState} from 'recoil';
+import NewsBanner from '../components/UI/NewsBanner';
+import Hoc from '../components/UI/Hoc';
+import TransactionsTable from '../components/transactionsTable/TransactionsTable';
+import type {
+  IMempoolQueryResult,
+  ITransactionQueryResult,
+} from '../components/transactionsTable/TransactionsTypes';
 import {BalanceContext} from '/@/contexts/balance/BalanceContext';
 import type {IBalanceContext} from '/@/contexts/balance/BalanceTypes';
+import {GET_HOME_NEWS, GET_ID, GET_MEMPOOL, GET_TRANSACTIONS} from '/@/graphql/query';
+import {walletState} from '../store';
 import {
+  DEFAULT_QUERY_REFRESH_INTERVAL,
   getPageFromOffset,
   readSession,
   TRANSACTIONS_TABLE_ITEMS_PER_PAGE,
-  DEFAULT_QUERY_REFRESH_INTERVAL,
 } from '/@/tools';
-import {GET_MEMPOOL, GET_TRANSACTIONS, GET_HOME_NEWS, GET_ID} from '/@/graphql/query';
-import NewsBanner from '../components/UI/NewsBanner';
-import type {IWalletData} from '/@/types/WalletData';
-import type {
-  ITransactionQueryResult,
-  IMempoolQueryResult,
-} from '../components/transactionsTable/TransactionsTypes';
-import type {IHomeNewsQuery} from '/@/types/NewsData';
-import {useWallet} from '../contexts/WalletContext';
-import {useRecoilState, useRecoilValue} from 'recoil';
-import {walletState} from '../store';
 import {IWalletIdData} from '../types';
+import type {IHomeNewsQuery} from '/@/types/NewsData';
+import type {IWalletData} from '/@/types/WalletData';
 
 interface IProps {
   sessionData: IWalletData;
@@ -30,19 +28,23 @@ interface IProps {
 
 const Overview = ({sessionData}: IProps) => {
   const {balanceData} = useContext<Partial<IBalanceContext>>(BalanceContext);
-  const balance = balanceData?.balances[sessionData.address];
-  const {wallet} = useWallet();
+  const balance = balanceData?.balances?.[sessionData.address];
   const [{id, address}, updateWalletState] = useRecoilState(walletState);
   const [offset, setOffset] = useState<number>(0);
   const [walletId, setWalletId] = useState<number>(+sessionData.id);
   const [loading, setLoading] = useState(true);
+  
   const {data: newsData} = useQuery<IHomeNewsQuery>(GET_HOME_NEWS);
+  
   const {data: walletIDData} = useQuery<IWalletIdData>(GET_ID, {
     variables: {
       publicKey: address,
     },
+    skip: !address,
   });
+
   const lastNews = newsData?.newsHome && newsData?.newsHome.length > 0 && newsData?.newsHome[0];
+
   const {
     data: transactionsData,
     loading: transactionsLoading,
@@ -53,9 +55,10 @@ const Overview = ({sessionData}: IProps) => {
   } = useQuery<ITransactionQueryResult>(GET_TRANSACTIONS, {
     variables: {accountId: +id || walletId, offset},
     fetchPolicy: 'network-only',
-    skip: !id,
+    skip: !id && walletId === -1,
     pollInterval: DEFAULT_QUERY_REFRESH_INTERVAL,
   });
+
   const {
     data: mempoolData,
     loading: mempoolLoading,
@@ -68,40 +71,47 @@ const Overview = ({sessionData}: IProps) => {
     fetchPolicy: 'network-only',
     pollInterval: DEFAULT_QUERY_REFRESH_INTERVAL,
   });
-  /**
-   * Read the wallet id from the session data every 10 seconds until a valid id is retrieved
-   */
-  useEffect(() => {
-    readWalletData();
-  });
-
-  useEffect(() => {
-    if (walletIDData) {
-      const newId = walletIDData?.idByPublicKey?.id;
-      if (newId && newId !== id) {
-        updateWalletState(state => ({
-          ...state,
-          id: newId,
-        }));
-      }
-      if (newId === null) {
-        updateWalletState(state => ({
-          ...state,
-          id: -1,
-        }));
-      }
-    }
-  }, [walletIDData]);
 
   /**
    * Read session data and set the wallet id in the component state
    */
   const readWalletData = async () => {
     const wallet = await readSession();
-    if (wallet && wallet?.id !== -1) {
+    if (wallet && wallet.id !== -1 && wallet.id !== walletId) {
       setWalletId(wallet.id);
     }
   };
+
+  /**
+   * Read the wallet id from the session data every 10 seconds until a valid id is retrieved
+   */
+  useEffect(() => {
+    if (walletId !== -1) return;
+    
+    const interval = setInterval(() => {
+      readWalletData();
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, [walletId]);
+
+  useEffect(() => {
+    if (walletIDData?.idByPublicKey) {
+      const newId = walletIDData.idByPublicKey.id;
+      
+      if (newId !== null && newId !== id) {
+        updateWalletState(state => ({
+          ...state,
+          id: newId,
+        }));
+      } else if (newId === null && id !== -1) {
+        updateWalletState(state => ({
+          ...state,
+          id: -1,
+        }));
+      }
+    }
+  }, [walletIDData, id, updateWalletState]);
 
   /**
    * Set query offset param based on selected table page
@@ -131,16 +141,12 @@ const Overview = ({sessionData}: IProps) => {
   };
 
   useEffect(() => {
-    if (transactionsData) {
+    if (transactionsData || mempoolData || transactionsError) {
       setLoading(false);
     }
-  }, [transactionsData, mempoolData]);
+  }, [transactionsData, mempoolData, transactionsError]);
 
-  useEffect(() => {
-    if (transactionsError) {
-      setLoading(false);
-    }
-  }, [transactionsError]);
+  const currentBalance = balance?.total ? +balance.total : 0;
 
   return (
     <Hoc className="main-container">
@@ -150,11 +156,11 @@ const Overview = ({sessionData}: IProps) => {
           transactions={transactionsData}
           mempool={mempoolData}
           error={transactionsError}
-          loading={loading}
-          balance={+(balance?.total || 0)}
+          loading={loading || transactionsLoading || mempoolLoading}
+          balance={currentBalance}
           setOffset={changeOffset}
           page={getPageFromOffset(offset)}
-          userId={walletId}
+          userId={+id || walletId}
           userAddress={sessionData.address}
           refetchData={refetchData}
         />

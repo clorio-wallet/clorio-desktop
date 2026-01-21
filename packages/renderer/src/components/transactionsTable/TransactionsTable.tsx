@@ -78,22 +78,28 @@ const TransactionsTable = ({
       <tbody>
         {mempool?.mempool?.map((row, index) => {
           const rowData: ITransactionRowData = mempoolQueryRowToTableRow(row);
-          return TransactionRow(
-            rowData,
-            index,
-            userAddress,
-            blacklist?.blacklistedAddresses || [],
-            true,
+          return (
+            <TransactionRow
+              key={`mempool-${index}`}
+              rowData={rowData}
+              index={index}
+              userAddress={userAddress}
+              blacklist={blacklist?.blacklistedAddresses || []}
+              isMempool={true}
+            />
           );
         })}
         {transactions?.transactions?.map((row, index) => {
           const rowData: ITransactionRowData = transactionQueryRowToTableRow(row);
-          return TransactionRow(
-            rowData,
-            index,
-            userAddress,
-            blacklist?.blacklistedAddresses || [],
-            false,
+          return (
+            <TransactionRow
+              key={`tx-${index}`}
+              rowData={rowData}
+              index={index}
+              userAddress={userAddress}
+              blacklist={blacklist?.blacklistedAddresses || []}
+              isMempool={false}
+            />
           );
         })}
         {lastTransaction()}
