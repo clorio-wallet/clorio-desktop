@@ -16,25 +16,8 @@ interface IProps {
   isMempool: boolean;
 }
 
-const TransactionRow: React.FC<IProps> = ({
-  rowData,
-  index,
-  userAddress,
-  blacklist,
-  isMempool,
-}) => {
-  const {
-    timestamp,
-    amount,
-    sender,
-    receiver,
-    fee,
-    memo,
-    id,
-    type,
-    failed,
-    failure_reason,
-  } = rowData;
+const TransactionRow: React.FC<IProps> = ({rowData, index, userAddress, blacklist, isMempool}) => {
+  const {timestamp, amount, sender, receiver, memo, id, type, failed, failure_reason} = rowData;
 
   let senderScam = 0;
   const isScam = blacklist.reduce((previous, actual) => {
@@ -79,15 +62,7 @@ const TransactionRow: React.FC<IProps> = ({
       className={`${isScam ? 'dangerous-transaction' : ''} hover-row`}
     >
       <td className="table-element table-icon align-middle">
-        {TransactionIcon(
-          type,
-          sender,
-          receiver,
-          userAddress,
-          isScam,
-          failed,
-          failure_reason,
-        )}
+        {TransactionIcon(type, sender, receiver, userAddress, isScam, failed, failure_reason)}
       </td>
       <td className="table-element table-hash align-middle">
         <div className="d-flex align-items-center">
@@ -101,10 +76,10 @@ const TransactionRow: React.FC<IProps> = ({
           >
             {trimMiddle(id, 10)}
           </a>
-          <Copy 
-            size={14} 
-            className="cursor-pointer text-muted hover-primary" 
-            onClick={(e) => handleCopy(e, id)} 
+          <Copy
+            size={14}
+            className="cursor-pointer text-muted hover-primary"
+            onClick={e => handleCopy(e, id)}
             data-tip="Copy Transaction Hash"
           />
         </div>
@@ -117,14 +92,17 @@ const TransactionRow: React.FC<IProps> = ({
       </td>
       <td className="table-element align-middle">
         <div className="d-flex align-items-center">
-          <span className="mr-2" data-tip={sender}>
+          <span
+            className="mr-2"
+            data-tip={sender}
+          >
             {sender === userAddress ? 'You' : trimMiddle(sender, 12)}
           </span>
           {sender !== userAddress && (
-            <Copy 
-              size={14} 
-              className="cursor-pointer text-muted hover-primary" 
-              onClick={(e) => handleCopy(e, sender)} 
+            <Copy
+              size={14}
+              className="cursor-pointer text-muted hover-primary"
+              onClick={e => handleCopy(e, sender)}
               data-tip="Copy Sender Address"
             />
           )}
@@ -132,22 +110,23 @@ const TransactionRow: React.FC<IProps> = ({
       </td>
       <td className="table-element align-middle">
         <div className="d-flex align-items-center">
-          <span className="mr-2" data-tip={receiver}>
+          <span
+            className="mr-2"
+            data-tip={receiver}
+          >
             {receiver === userAddress ? 'You' : trimMiddle(receiver, 12)}
           </span>
           {receiver !== userAddress && (
-            <Copy 
-              size={14} 
-              className="cursor-pointer text-muted hover-primary" 
-              onClick={(e) => handleCopy(e, receiver)} 
+            <Copy
+              size={14}
+              className="cursor-pointer text-muted hover-primary"
+              onClick={e => handleCopy(e, receiver)}
               data-tip="Copy Receiver Address"
             />
           )}
         </div>
       </td>
-      <td
-        className={`table-element align-middle font-weight-bold ${amountColor}`}
-      >
+      <td className={`table-element align-middle font-weight-bold ${amountColor}`}>
         {humanAmount} MINA
       </td>
     </tr>

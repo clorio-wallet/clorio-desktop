@@ -36,8 +36,8 @@ export const transactionQueryRowToTableRow = (transactionRow: ITransactionQueryD
   const {timestamp, status, failure_reason} = transactionRow;
   const id = transactionRow.hash;
   const amount = transactionRow.amount ? toMINA(transactionRow.amount) : 0;
-  const sender = transactionRow.sender_public_key;
-  const receiver = transactionRow.receiver_public_key;
+  const sender = transactionRow.sender_public_key || '';
+  const receiver = transactionRow.receiver_public_key || '';
   const fee = 'Fee : ' + (transactionRow.fee ? +toMINA(transactionRow.fee) : 0) + ' Mina';
   const type = transactionRow.command_type;
   const isSelf = receiver === sender;
@@ -60,9 +60,9 @@ export const transactionQueryRowToTableRow = (transactionRow: ITransactionQueryD
 };
 
 export const formatUrl = (txId: string,url?: string) => {
-  if (url && url.includes('minascan.io')) {
+  if (url.includes('minascan.io')) {
     return `${url}tx/${txId}`;
   } else {
-    return `${url || ''}transaction/${txId}`;
+    return `${url}transaction/${txId}`;
   }
 };
