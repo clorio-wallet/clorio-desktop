@@ -74,7 +74,7 @@ const TransactionRow: React.FC<IProps> = ({rowData, index, userAddress, blacklis
             style={{cursor: 'pointer'}}
             data-tip={memo ? `Memo: ${sanitizeString(memo)}` : id}
           >
-            {trimMiddle(id, 10)}
+            {trimMiddle(id, 24)}
           </a>
           <Copy
             size={14}
@@ -96,7 +96,7 @@ const TransactionRow: React.FC<IProps> = ({rowData, index, userAddress, blacklis
             className="mr-2"
             data-tip={sender}
           >
-            {sender === userAddress ? 'You' : trimMiddle(sender, 12)}
+            {sender === userAddress ? 'You' : trimMiddle(sender, 24)}
           </span>
           {sender !== userAddress && (
             <Copy
@@ -111,10 +111,10 @@ const TransactionRow: React.FC<IProps> = ({rowData, index, userAddress, blacklis
       <td className="table-element align-middle">
         <div className="d-flex align-items-center">
           <span
-            className="mr-2"
+            className="mr-2 trim-receiver"
             data-tip={receiver}
           >
-            {receiver === userAddress ? 'You' : trimMiddle(receiver, 12)}
+            {receiver === userAddress ? 'You' : trimMiddle(receiver, 24)}
           </span>
           {receiver !== userAddress && (
             <Copy

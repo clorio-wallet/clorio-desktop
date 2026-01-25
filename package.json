@@ -74,9 +74,6 @@
     "@types/react-dom": "^18.2.12",
     "@typescript-eslint/parser": "^6.7.5",
     "@vitejs/plugin-react": "^4.1.0",
-    "apollo-link": "^1.2.14",
-    "apollo-link-error": "^1.1.13",
-    "apollo-link-http": "^1.5.17",
     "append-query": "^2.1.1",
     "bad-words": "^3.0.4",
     "big.js": "^6.2.1",
@@ -139,10 +136,14 @@
       "*.tsx",
       "public/**/*"
     ],
-    "protocols": [{
-      "name": "Clorio Wallet Protocol",
-      "schemes": ["mina"]
-    }],
+    "protocols": [
+      {
+        "name": "Clorio Wallet Protocol",
+        "schemes": [
+          "mina"
+        ]
+      }
+    ],
     "directories": {
       "buildResources": "assets"
     },
@@ -165,7 +166,8 @@
     "dmg": {
       "title": "Clorio Wallet",
       "background": "assets/background.png",
-      "contents": [{
+      "contents": [
+        {
           "x": "320",
           "y": "280",
           "type": "file"

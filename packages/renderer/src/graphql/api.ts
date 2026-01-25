@@ -1,8 +1,6 @@
-import {ApolloLink} from 'apollo-link';
-import {onError} from 'apollo-link-error';
-import {HttpLink} from 'apollo-link-http';
+import {ApolloLink, HttpLink, ApolloClient, InMemoryCache} from '@apollo/client';
+import {onError} from '@apollo/client/link/error';
 import type {NormalizedCacheObject} from '@apollo/client';
-import {ApolloClient, InMemoryCache} from '@apollo/client';
 import {INetworkOption} from '../hooks/useNetworkSettings';
 
 const httpLink = (networkSettings: INetworkOption) =>
