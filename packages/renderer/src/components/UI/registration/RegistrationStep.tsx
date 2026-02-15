@@ -3,7 +3,7 @@ import {Accordion, Col, useAccordionButton} from 'react-bootstrap';
 import type {IKeypair} from '../../../types/Keypair';
 import {PdfEncryption} from './PdfEncryption';
 import Button from '../Button';
-import isElectron from 'is-electron';
+import {isElectron} from '/@/tools/environment';
 import {isChrome} from '../../../tools';
 import type {INetworkData} from '../../../types';
 import {ArrowLeft, ArrowRight, FileText} from 'react-feather';

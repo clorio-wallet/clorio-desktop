@@ -7,12 +7,12 @@ import {useNetworkSettingsContext} from '/@/contexts/NetworkContext';
 import {useNavigate} from 'react-router-dom';
 import BackupWallet from '../modals/BackupWallet';
 import {INetworkData} from '/@/types';
-import {getPassphrase} from '/@/tools';
+import {getPassphraseFlag} from '/@/tools';
 import {useRecoilState} from 'recoil';
 import {networkState} from '/@/store';
 import {ConnectedZkapps} from './ConnectedZkapps';
 import {NetConfig, sendResponse} from '/@/tools/mina-zkapp-bridge';
-import isElectron from 'is-electron';
+import {isElectron} from '/@/tools/environment';
 
 export default function NetworkSettings({
   currentNetwork,
@@ -51,9 +51,7 @@ export default function NetworkSettings({
       : 0;
 
   useEffect(() => {
-    getPassphrase().then(passphrase => {
-      setStoredPassphrase(passphrase);
-    });
+    setStoredPassphrase(getPassphraseFlag());
   }, []);
 
   const networkSelectHandler = (e: any) => {

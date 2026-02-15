@@ -2,7 +2,8 @@ import {useState} from 'react';
 import {CustomSidebar} from './components/UI/sidebar/Sidebar';
 import {Container} from 'react-bootstrap';
 import Routes from './Routes';
-import {storeNetworkData, isEmptyObject} from './tools';
+import {isEmptyObject} from './tools';
+import {isElectron} from './tools/environment';
 import Spinner from './components/UI/Spinner';
 import UserIDUpdater from './components/userIdUpdater/UserIDUpdater';
 import {useQuery} from '@apollo/client';
@@ -12,31 +13,20 @@ import {GET_NETWORK} from './graphql/query';
 import {TermsAndConditions} from './components/UI/modals';
 import type {INetworkData} from './types';
 import ZkappIntegration from './components/ZkappIntegration';
-import {useRecoilState} from 'recoil';
-import {walletState} from './store';
-import {initialWalletState} from './store/wallet';
-import isElectron from 'is-electron';
-import {GlobalLoader} from './components/GlobalLoader';
+import {useWallet} from './contexts/WalletContext';
 
 const Layout = () => {
   const [showLoader, setShowLoader] = useState<boolean>(false);
-  // const {updateWallet, wallet: sessionData} = useWallet();
-  const [sessionData, updateWallet] = useRecoilState(walletState);
+  const {wallet: sessionData, updateWallet} = useWallet();
 
-  const {data: networkData} = useQuery<INetworkData>(GET_NETWORK, {
-    onCompleted: async data => {
-      if (data?.nodeInfo) {
-        await storeNetworkData(data?.nodeInfo);
-      }
-    },
-  });
+  const {data: networkData} = useQuery<INetworkData>(GET_NETWORK);
 
   const toggleLoader = (state?: boolean) => {
     setShowLoader(state ? state : !showLoader);
   };
 
   const clearSessionData = () => {
-    updateWallet(initialWalletState);
+    updateWallet({});
     setShowLoader(true);
   };
   const isAuthenticated = !!sessionData.address;
@@ -44,7 +34,6 @@ const Layout = () => {
   return (
     <div>
       {isElectron() && <ZkappIntegration />}
-      <GlobalLoader />
       <Container fluid>
         <TermsAndConditions />
         <div className="flex items-stretch">

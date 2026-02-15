@@ -3,7 +3,7 @@
  * It imports necessary modules and defines functions for creating, restoring, and handling events in the main window.
  * It also includes IPC communication between the main process and child windows.
  */
-import {app, BrowserWindow, ipcMain, Menu} from 'electron';
+import {app, BrowserWindow, ipcMain, Menu, session} from 'electron';
 import * as path from 'node:path';
 import {join, resolve} from 'node:path';
 const {MinaLedgerJS} = require('mina-ledger-js');
@@ -74,6 +74,51 @@ const template = [
   },
 ];
 
+/**
+ * Builds the Content-Security-Policy header value.
+ *
+ * Dev mode needs:
+ *   - 'unsafe-inline' on style-src  → Vite HMR injects <style> tags
+ *   - 'wasm-unsafe-eval' on script-src → mina-signer compiles secp256k1.wasm at runtime
+ *   - ws: on connect-src            → Vite WebSocket for HMR
+ *
+ * Production uses a strict policy with no unsafe-* keywords.
+ */
+function buildCSP(isDev: boolean): string {
+  const self = "'self'";
+  const fonts = 'https://fonts.googleapis.com https://fonts.gstatic.com';
+  const api = 'https://*.clor.io https://api.mina.tools https://minaprotocol.com';
+
+  if (isDev) {
+    return [
+      `default-src ${self}`,
+      // 'unsafe-inline' required: Vite Fast Refresh injects an inline script preamble
+      // 'wasm-unsafe-eval' required: mina-signer compiles secp256k1.wasm at runtime
+      `script-src ${self} 'unsafe-inline' 'wasm-unsafe-eval'`,
+      // 'unsafe-inline' required: Vite HMR injects <style> tags at runtime
+      `style-src ${self} 'unsafe-inline' ${fonts}`,
+      `font-src ${self} ${fonts}`,
+      // ws:/wss: required for Vite HMR WebSocket
+      `connect-src ${self} ws: wss: ${api} https://*.clor.io/v1/graphql https://api.mina.tools/v1/epoch`,
+      `img-src ${self} data: https://*.staketab.com`,
+      'object-src \'none\'',
+      `worker-src blob: ${self}`,
+    ].join('; ');
+  }
+
+  return [
+    `default-src ${self} ${api}`,
+    // 'wasm-unsafe-eval' required in prod too: mina-signer compiles secp256k1.wasm at runtime
+    `script-src ${self} 'wasm-unsafe-eval'`,
+    `style-src ${self} ${fonts}`,
+    `font-src ${self} ${fonts}`,
+    `connect-src ${self} ${api} https://*.clor.io/v1/graphql https://api.mina.tools/v1/epoch`,
+    `img-src ${self} data: https://*.staketab.com`,
+    'object-src \'none\'',
+    `worker-src blob: ${self}`,
+  ].join('; ');
+}
+
 async function createWindow() {
   browserWindow = new BrowserWindow({
     width: 1600,
@@ -87,9 +132,9 @@ async function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false,
-      devTools: false,
-      sandbox: false, // Sandbox disabled because the demo of preload script depend on the Node.js api
+      webSecurity: true,
+      devTools: import.meta.env.DEV,
+      sandbox: false, // Sandbox disabled because the preload script depends on the Node.js api
       webviewTag: false, // The webview tag is not recommended. Consider alternatives like an iframe or Electron's BrowserView. @see https://www.electronjs.org/docs/latest/api/webview-tag#warning
       preload: join(app.getAppPath(), 'packages/preload/dist/index.cjs'),
     },
@@ -109,7 +154,20 @@ async function createWindow() {
     if (import.meta.env.DEV) {
       browserWindow?.webContents.openDevTools();
     }
-    // browserWindow?.webContents.openDevTools();
+  });
+
+  /**
+   * Enforce Content-Security-Policy via response headers.
+   * This is the correct approach for Electron — meta tags are unreliable
+   * and cannot cover all resource types (e.g. WebAssembly compilation).
+   */
+  browserWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [buildCSP(import.meta.env.DEV)],
+      },
+    });
   });
 
   /**
@@ -182,10 +240,10 @@ ipcMain.handle('open-win', (_: Electron.IpcMainInvokeEvent, arg) => {
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       preload: join(app.getAppPath(), 'packages/preload/dist/index.cjs'),
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: true,
-      sandbox: false, // Sandbox disabled because the demo of preload script depend on the Node.js api
-      webSecurity: false,
+      sandbox: false, // Sandbox disabled because the preload script depends on the Node.js api
+      webSecurity: true,
     },
   });
 
@@ -205,7 +263,7 @@ ipcMain.handle('open-win', (_: Electron.IpcMainInvokeEvent, arg) => {
     draggableBar.style.color = '#fff';
     draggableBar.style.margin = '0';
     draggableBar.style.padding = '0';
-    
+
     document.body.appendChild(draggableBar);
     document.body.style.paddingTop = '40px'; // Push the content below the bar
   `);
@@ -234,12 +292,12 @@ ipcMain.handle('open-win', (_: Electron.IpcMainInvokeEvent, arg) => {
       cursor: pointer;
       margin: 0 !important;
     }
-    
+
     .bar:active,
     .bar:hover {
       outline: 0;
     }
-    
+
     .bar span {
       background-color: rgb(5, 6, 45);
       // padding: 16px 24px;
@@ -267,7 +325,7 @@ ipcMain.handle('open-win', (_: Electron.IpcMainInvokeEvent, arg) => {
     .right-string{
       text-align: right;
     }
-    
+
     @media (min-width: 768px) {
       .bar {
         font-size: 24px;
@@ -317,11 +375,11 @@ ipcMain.handle('open-win', (_: Electron.IpcMainInvokeEvent, arg) => {
       leftStringTitle.textContent = '';
       leftString.textContent = "Clorio wallet not connected";
     }
-    
+
     leftContainer.appendChild(leftStringTitle);
     leftContainer.appendChild(leftString);
     bar.appendChild(leftContainer);
-    
+
     const rightString = document.createElement('span');
     rightContainer.style.display = 'flex';
     rightContainer.style.flexDirection = 'row';
@@ -332,7 +390,7 @@ ipcMain.handle('open-win', (_: Electron.IpcMainInvokeEvent, arg) => {
     const network = await window.mina.requestNetwork()
     if(network.name) {
       rightString.textContent = (account.length>0 ? 'Clorio connected | ': '') + network.name;
-    } 
+    }
     rightContainer.appendChild(rightString);
     bar.appendChild(rightContainer);
 
@@ -349,8 +407,8 @@ ipcMain.handle('open-win', (_: Electron.IpcMainInvokeEvent, arg) => {
         rightString.textContent = 'Clorio connected | ' + data.name;
       })
     }
-  
-    
+
+
     bar.addEventListener('click', () => {
       window.mina.focusClorio();
     });

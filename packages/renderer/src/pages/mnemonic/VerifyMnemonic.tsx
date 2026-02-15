@@ -1,4 +1,4 @@
-import isElectron from 'is-electron';
+import {isElectron} from '/@/tools/environment';
 import {useState} from 'react';
 import {Row, Col} from 'react-bootstrap';
 import {ArrowLeft, ArrowRight} from 'react-feather';

@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import isElectron from 'is-electron';
+import {isElectron} from '/@/tools/environment';
 import {useNavigate} from 'react-router-dom';
 import Hoc from '../../components/UI/Hoc';
 import {VerifyMnemonic} from './VerifyMnemonic';
@@ -53,7 +53,14 @@ function Mnemonic({network, toggleLoader}: IProps) {
   const [verify, setVerify] = useState<boolean>(false);
 
   const saveAndStoreSession = async () => {
-    const result = await storeSession(keypair.publicKey, -1, false, 0, true);
+    await storeSession({
+      address: keypair.publicKey,
+      id: -1,
+      ledger: false,
+      ledgerAccount: 0,
+      mnemonic: true,
+      accountNumber: 0,
+    });
     await updateWallet({
       address: keypair.publicKey,
       id: -1,
@@ -64,9 +71,7 @@ function Mnemonic({network, toggleLoader}: IProps) {
     });
     await storeAccounts([{accountId: 0, address: keypair.publicKey}]);
     setPassphrase(!!keypair.mnemonic);
-    if (result) {
-      navigate('/overview');
-    }
+    navigate('/overview');
   };
 
   /**

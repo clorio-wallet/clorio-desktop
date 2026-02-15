@@ -1,12 +1,22 @@
 node_modules
+scripts/.verify-snapshot.json
 .DS_Store
 dist
 *.local
 thumbs.db
 
+# Lock file error logs
+yarn-error.log
+npm-debug.log*
+
 .eslintcache
 .browserslistrc
 .electron-vendors.cache.json
+
+# Redundant lockfiles (project uses a single package manager)
+bun.lock
+package-lock.json
+packages/renderer/yarn.lock
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839

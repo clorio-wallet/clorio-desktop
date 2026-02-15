@@ -1,5 +1,5 @@
 let invoke: any;
-import isElectron from 'is-electron';
+import {isElectron} from '../environment';
 import type {ILedgerTransaction} from '../../types/LedgerDelegationTransaction';
 
 // Wrapped Electron API for Ledger Devices

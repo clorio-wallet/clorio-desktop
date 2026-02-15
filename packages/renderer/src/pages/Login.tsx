@@ -13,7 +13,7 @@ import SecureDataStorageComponent from '../components/ReadSecureStorage';
 import useSecureStorage from '../hooks/useSecureStorage';
 import {useSetRecoilState} from 'recoil';
 import {configState, walletState} from '../store';
-import isElectron from 'is-electron';
+import {isElectron} from '../tools/environment';
 
 interface IProps {
   toggleLoader: (state: boolean) => void;
@@ -64,7 +64,7 @@ function Login({toggleLoader}: IProps) {
       storeSessionAndRedirect(derivedPublicKey || publicKey, id);
     } else if (derivedPublicKey) {
       toggleLoader(true);
-      const id = +userId || -1;
+      const id = +userId! || -1;
       storeSessionAndRedirect(derivedPublicKey || publicKey, id);
     }
   };
@@ -85,11 +85,19 @@ function Login({toggleLoader}: IProps) {
 
   const storeSessionAndRedirect = async (publicKey: string, id: number) => {
     await userIdFetch({variables: {publicKey}});
-    const isUsingMnemonic = privateKey.trim().split(' ').length === 12 || privateKey.trim().split(' ').length === 24;
+    const isUsingMnemonic =
+      privateKey.trim().split(' ').length === 12 || privateKey.trim().split(' ').length === 24;
     if (storePassphrase) {
       setPassphrase(isUsingMnemonic);
     }
-    const success = await storeSession(publicKey, id, false, 0, isUsingMnemonic);
+    await storeSession({
+      address: publicKey,
+      id,
+      ledger: false,
+      ledgerAccount: 0,
+      mnemonic: isUsingMnemonic,
+      accountNumber: 0,
+    });
     await updateWallet({
       address: publicKey,
       id,
@@ -100,17 +108,15 @@ function Login({toggleLoader}: IProps) {
       isAuthenticated: true,
     });
     await storeAccounts([{accountId: 0, address: publicKey}]);
-    if (success) {
-      setConfig(prev => ({
-        ...prev,
-        isAuthenticated: true,
-        isUsingMnemonic,
-        isLedgerEnabled: false,
-        isLocked: false,
-      }));
-      navigate('/overview');
-      toggleLoader(false);
-    }
+    setConfig(prev => ({
+      ...prev,
+      isAuthenticated: true,
+      isUsingMnemonic,
+      isLedgerEnabled: false,
+      isLocked: false,
+    }));
+    navigate('/overview');
+    toggleLoader(false);
   };
 
   const storePassphraseHandler = () => setStorePassphrase(!storePassphrase);

@@ -1,4 +1,4 @@
-import isElectron from 'is-electron';
+import {isElectron} from '/@/tools/environment';
 import { useState } from 'react';
 import { X } from 'react-feather';
 
