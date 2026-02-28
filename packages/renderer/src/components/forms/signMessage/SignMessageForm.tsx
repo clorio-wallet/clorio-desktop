@@ -1,5 +1,5 @@
 import {useContext, useEffect, useState} from 'react';
-import {client, deriveAccount, getPassphrase} from '../../../tools';
+import {client, deriveAccount, getPassphraseFlag} from '../../../tools';
 import Button from '../../UI/Button';
 import HelpHint from '../../UI/HelpHint';
 import Input from '../../UI/input/Input';
@@ -32,9 +32,7 @@ const SignMessageForm = () => {
   });
 
   useEffect(() => {
-    getPassphrase().then(passphrase => {
-      setStoredPassphrase(passphrase);
-    });
+    setStoredPassphrase(getPassphraseFlag());
   }, []);
 
   const {isLedgerEnabled} = useContext<Partial<ILedgerContext>>(LedgerContext);

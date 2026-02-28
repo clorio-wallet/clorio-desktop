@@ -25,7 +25,7 @@ import {
   deriveAccount,
   feeOrDefault,
   getDefaultValidUntilField,
-  getPassphrase,
+  getPassphraseFlag,
 } from '/@/tools';
 import {
   createLedgerDelegationTransaction,
@@ -85,9 +85,7 @@ export const useStake = (sessionData: IWalletData) => {
   });
 
   useEffect(() => {
-    getPassphrase().then(passphrase => {
-      setStoredPassphrase(passphrase);
-    });
+    setStoredPassphrase(getPassphraseFlag());
   }, []);
 
   useEffect(() => {

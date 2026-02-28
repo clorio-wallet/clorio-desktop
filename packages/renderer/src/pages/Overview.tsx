@@ -1,6 +1,5 @@
 import {useQuery} from '@apollo/client';
 import {useContext, useEffect, useState} from 'react';
-import {useRecoilState} from 'recoil';
 import NewsBanner from '../components/UI/NewsBanner';
 import Hoc from '../components/UI/Hoc';
 import TransactionsTable from '../components/transactionsTable/TransactionsTable';
@@ -11,7 +10,7 @@ import type {
 import {BalanceContext} from '/@/contexts/balance/BalanceContext';
 import type {IBalanceContext} from '/@/contexts/balance/BalanceTypes';
 import {GET_HOME_NEWS, GET_ID, GET_MEMPOOL, GET_TRANSACTIONS} from '/@/graphql/query';
-import {walletState} from '../store';
+import {useWallet} from '../contexts/WalletContext';
 import {
   DEFAULT_QUERY_REFRESH_INTERVAL,
   getPageFromOffset,
@@ -29,7 +28,8 @@ interface IProps {
 const Overview = ({sessionData}: IProps) => {
   const {balanceData} = useContext<Partial<IBalanceContext>>(BalanceContext);
   const balance = balanceData?.balances?.[sessionData.address];
-  const [{id, address}, updateWalletState] = useRecoilState(walletState);
+  const {wallet, updateWallet: updateWalletState} = useWallet();
+  const {id, address} = wallet;
   const [offset, setOffset] = useState<number>(0);
   const [walletId, setWalletId] = useState<number>(+sessionData.id);
   const [loading, setLoading] = useState(true);

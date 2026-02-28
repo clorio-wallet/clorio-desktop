@@ -6,7 +6,7 @@ import {
   deriveAccountFromMnemonic,
   getAccountByAddress,
   getAllAccounts,
-  getPassphrase,
+  getPassphraseFlag,
   pushAccount,
   removeAccountByAddress,
   storeSession,
@@ -60,9 +60,7 @@ const MnemonicAccountSelection = ({
   }, [currentAddress]);
 
   useEffect(() => {
-    getPassphrase().then(passphrase => {
-      setHasMnemonic(passphrase);
-    });
+    setHasMnemonic(getPassphraseFlag());
   }, []);
 
   const getMaximumAccountId = (storedAccounts: IWalletData[]) => {
@@ -112,7 +110,14 @@ const MnemonicAccountSelection = ({
           const {data} = await fetchUserId({variables: {publicKey: keypair?.priKey}});
           const userId = +data?.idByPublicKey?.id || -1;
           await pushAccount({address: keypair.pubKey, accountId});
-          const success = await storeSession(keypair.pubKey, userId, false, 0, true, accountId);
+          const success = await storeSession({
+            address: keypair.pubKey,
+            id: userId,
+            ledger: false,
+            ledgerAccount: 0,
+            mnemonic: true,
+            accountNumber: accountId,
+          });
           await updateWallet({
             address: keypair.publicKey,
             id: userId,

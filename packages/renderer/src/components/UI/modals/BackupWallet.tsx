@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import {Col, Row} from 'react-bootstrap';
 import {ArrowRight} from 'react-feather';
 import {toast} from 'react-toastify';
-import {deriveAccount, getPassphrase} from '../../../tools';
+import {deriveAccount, getPassphraseFlag} from '../../../tools';
 import Button from '../Button';
 import Input from '../input/Input';
 import useSecureStorage from '/@/hooks/useSecureStorage';
@@ -29,9 +29,7 @@ const BackupWallet = ({closeModal}: IProps) => {
   const {wallet} = useWallet();
 
   useEffect(() => {
-    getPassphrase().then(passphrase => {
-      setStoredPassphrase(passphrase);
-    });
+    setStoredPassphrase(getPassphraseFlag());
   }, []);
   /**
    * Derive the keypair from the mnemonic

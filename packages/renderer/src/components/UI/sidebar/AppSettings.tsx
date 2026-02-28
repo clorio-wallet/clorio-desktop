@@ -13,8 +13,7 @@ import {ModalContainer} from '../modals';
 import NetworkSettings from './NetworkSettings';
 import {renderNetworkLabel} from './SidebarHelper';
 import {Repeat} from 'react-feather';
-import {walletState} from '/@/store';
-import {useRecoilState} from 'recoil';
+import {useWallet} from '/@/contexts/WalletContext';
 
 export default function AppSettings({
   toggleLoader,
@@ -24,7 +23,7 @@ export default function AppSettings({
   network,
 }: any | {toggleLoader: (state?: boolean) => void}) {
   const [showModal, setShowModal] = useState(false);
-  const [wallet, updateWallet] = useRecoilState(walletState);
+  const {wallet, updateWallet} = useWallet();
   const {address, mnemonic: isUsingMnemonic} = wallet;
   const {addBalance, shouldBalanceUpdate, setShouldBalanceUpdate} =
     useContext<Partial<IBalanceContext>>(BalanceContext);
@@ -51,14 +50,14 @@ export default function AppSettings({
   const onAccountChange = async (wallet: {publicKey: string; accountId: number}) => {
     try {
       const walletId = await fetchWalletID({variables: {publicKey: wallet.publicKey}});
-      await storeSession(
-        wallet.publicKey,
-        +walletId?.data?.idByPublicKey?.id || -1,
-        false,
-        0,
-        true,
-        wallet.accountId,
-      );
+      await storeSession({
+        address: wallet.publicKey,
+        id: +walletId?.data?.idByPublicKey?.id || -1,
+        ledger: false,
+        ledgerAccount: 0,
+        mnemonic: true,
+        accountNumber: wallet.accountId,
+      });
       await updateWallet({
         address: wallet.publicKey,
         id: +walletId?.data?.idByPublicKey?.id || -1,
@@ -69,7 +68,14 @@ export default function AppSettings({
       });
       await refetchBalance(wallet.publicKey);
     } catch (error) {
-      await storeSession(wallet.publicKey, -1, false, 0, true, wallet.accountId);
+      await storeSession({
+        address: wallet.publicKey,
+        id: -1,
+        ledger: false,
+        ledgerAccount: 0,
+        mnemonic: true,
+        accountNumber: wallet.accountId,
+      });
       await updateWallet({
         address: wallet.publicKey,
         id: -1,

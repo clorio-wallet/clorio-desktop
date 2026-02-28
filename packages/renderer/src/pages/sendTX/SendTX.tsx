@@ -21,7 +21,7 @@ import {
   createSignatureInputFromSignature,
   MINIMUM_NONCE,
   deriveAccount,
-  getPassphrase,
+  getPassphraseFlag,
   toMINA,
 } from '/@/tools';
 import Spinner from '/@/components/UI/Spinner';
@@ -84,9 +84,7 @@ function SendTX(props: IProps) {
   });
   const [fetchBalance] = useLazyQuery<IBalanceQueryResult>(GET_BALANCE);
   useEffect(() => {
-    getPassphrase().then(passphrase => {
-      setStoredPassphrase(passphrase);
-    });
+    setStoredPassphrase(getPassphraseFlag());
   }, []);
   const feeQuery = useQuery<IFeeQuery>(GET_FEE, {
     onCompleted: data => {
@@ -360,7 +358,7 @@ function SendTX(props: IProps) {
         to: transactionData.receiverAddress,
         nonce: actualNonce,
         fee: transactionData.fee,
-        amoun: transactionData.amount,
+        amount: transactionData.amount,
       });
 
       if (signedPayment) {
