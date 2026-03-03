@@ -26,7 +26,10 @@ const Balance = () => {
   return (
     <div className="glass-card px-3 py-2">
       <ReactTooltip multiline={true} />
-      <div className="big-screen" ref={bigTextRef}>
+      <div
+        className="big-screen"
+        ref={bigTextRef}
+      >
         <div className="flex flex-row justify-start gap-4">
           <div className="inline-block-element mt-2">
             <CustomSkeleton
@@ -34,12 +37,19 @@ const Balance = () => {
               altProps={{height: 75, width: 75, circle: true} as any}
             >
               <div className="walletImageOutline">
-                <Avatar address={address} className="balance-avatar" />
+                <Avatar
+                  address={address}
+                  className="balance-avatar"
+                />
               </div>
             </CustomSkeleton>
           </div>
           <div className="inline-block-element wallet-data flex gap-2 flex-col">
-            <AddressInfo address={address} width={widthBigText} iconSize={20} />
+            <AddressInfo
+              address={address}
+              width={widthBigText}
+              iconSize={20}
+            />
             <div className="flex flex-row justify-start">
               <BalanceItem
                 label="Your balance"
@@ -97,12 +107,20 @@ const Balance = () => {
               altProps={{height: 75, width: 75, circle: true} as any}
             >
               <div className="walletImageOutline">
-                <Avatar address={address} className="balance-avatar" size={60} />
+                <Avatar
+                  address={address}
+                  className="balance-avatar"
+                  size={60}
+                />
               </div>
             </CustomSkeleton>
           </div>
           <div className="inline-block-element wallet-data flex gap-2 flex-col">
-            <AddressInfo address={address} width={widthSmallText} iconSize={18} />
+            <AddressInfo
+              address={address}
+              width={widthSmallText}
+              iconSize={18}
+            />
           </div>
         </div>
         <div>

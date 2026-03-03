@@ -6,9 +6,10 @@ import {apolloClient} from './graphql/api';
 import 'react-loading-skeleton/dist/skeleton.css';
 import './App.scss';
 import {formatNetworks, useNetworkSettingsContext} from './contexts/NetworkContext';
+import type {INetworkOption} from './hooks/useNetworkSettings';
 import {BalanceContextProvider} from './contexts/balance/BalanceContext';
 import {useEffect} from 'react';
-import {WalletProvider} from './contexts/WalletContext';
+
 import {clearSession} from './tools';
 import {networkState} from './store';
 import {useRecoilState} from 'recoil';
@@ -23,22 +24,24 @@ function App() {
   const {settings, setAvailableNetworks, saveSettings} = useNetworkSettingsContext();
   const [{selectedNetwork, selectedNode}, setNetworkState] = useRecoilState(networkState);
 
+  /**
+   * Returns the active network node for ApolloProvider.
+   * Falls back to `settings` (loaded from localStorage or env) when
+   * `selectedNode` is still undefined on the first render — prevents
+   * Apollo from firing requests to localhost:3000/graphql.
+   */
+  const activeNode: INetworkOption | null = selectedNode ?? settings;
+
   useEffect(() => {
     clearSession();
     getNetworks();
   }, []);
 
   const selectDefaultNetwork = (networks: string[]) => {
-    // const urlEnv = window.location.href.split('//')[1].split('.clor')[0];
-    // if (networks.includes(urlEnv)) {
-    //   return urlEnv;
-    // } else
     if (networks.includes('mainnet')) {
       return 'mainnet';
     } else if (networks.includes('devnet')) {
       return 'devnet';
-    } else if (networks.includes('berkeley')) {
-      return 'berkeley';
     } else {
       return networks[0];
     }
@@ -88,20 +91,18 @@ function App() {
 
   return (
     <div className="App">
-      <WalletProvider>
-        <BalanceContextProvider>
-          <React.Suspense fallback={null}>
-            <DevTools />
-          </React.Suspense>
-          <ApolloProvider client={apolloClient(selectedNode!)}>
-            <LedgerContextProvider>
-              <HashRouter>
-                <Layout />
-              </HashRouter>
-            </LedgerContextProvider>
-          </ApolloProvider>
-        </BalanceContextProvider>
-      </WalletProvider>
+      <BalanceContextProvider>
+        <React.Suspense fallback={null}>
+          <DevTools />
+        </React.Suspense>
+        <ApolloProvider client={apolloClient(activeNode!)}>
+          <LedgerContextProvider>
+            <HashRouter>
+              <Layout />
+            </HashRouter>
+          </LedgerContextProvider>
+        </ApolloProvider>
+      </BalanceContextProvider>
     </div>
   );
 }

@@ -99,14 +99,6 @@ export const GET_NONCE_AND_DELEGATE = gql`
   }
 `;
 
-// export const GET_ID = gql`
-//   query GetIDFromPublicKey($publicKey: String) {
-//     public_keys(where: { value: { _eq: $publicKey } }) {
-//       id
-//     }
-//   }
-// `;
-
 export const GET_ID = gql`
   query GetIDFromPublicKey($publicKey: String!) {
     idByPublicKey(publicKey: $publicKey) {
@@ -123,7 +115,6 @@ export const GET_TRANSACTIONS_TOTAL = gql`
   }
 `;
 
-// TODO: set back chainId and syncStatus, they are missing in the schema for the mocked networks
 export const GET_NETWORK = gql`
   query NodeInfo {
     nodeInfo {
@@ -165,42 +156,6 @@ export const GET_VALIDATORS_TOTAL = gql`
     }
   }
 `;
-
-// export const GET_TRANSACTIONS = gql`
-//   query GetTransactions($user: Int!, $offset: Int!) {
-//     user_commands(
-//       where: {
-//         _or: [{ receiver_id: { _eq: $user } }, { source_id: { _eq: $user } }]
-//       }
-//       order_by: { id: desc }
-//       limit: ${TRANSACTIONS_TABLE_ITEMS_PER_PAGE}
-//       offset: $offset
-//     ) {
-//       amount
-//       fee
-//       id
-//       hash
-//       memo
-//       publicKeyBySourceId {
-//         value
-//       }
-//       publicKeyByReceiverId {
-//         value
-//       }
-//       token
-//       type
-//       valid_until
-//       nonce
-//       blocks_user_commands {
-//         block {
-//           height
-//           timestamp
-//           state_hash
-//         }
-//       }
-//     }
-//   }
-// `;
 
 export const GET_TRANSACTIONS = gql`
   query GetTransactions($accountId: Int!, $offset: Int!) {

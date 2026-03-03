@@ -1289,6 +1289,10 @@ input[type="number"] {
   left: 0%;
 }
 
+.small-screen {
+  display: none !important;
+}
+
 @media screen and (max-height: 899px) {
   .big-modal-container {
     top: 8vh;

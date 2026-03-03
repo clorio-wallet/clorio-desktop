@@ -1,5 +1,5 @@
 import {createContext, useState, useEffect, useCallback, useMemo} from 'react';
-import {ReactChild} from 'react';
+import type {ReactNode} from 'react';
 import {IBalanceContext} from './BalanceTypes';
 const initialBalance = {
   liquid: '0',
@@ -18,7 +18,7 @@ export interface IBalance {
 }
 
 interface IProps {
-  children: ReactChild;
+  children: ReactNode;
 }
 
 export interface IBalanceData {
@@ -62,13 +62,7 @@ export const BalanceContextProvider = (props: IProps) => {
     setBalanceData(prevData => {
       const updatedBalances = {...prevData.balances};
 
-      // Check if the address is already stored, and if so, update the balance.
-      // eslint-disable-next-line no-prototype-builtins
-      if (updatedBalances?.hasOwnProperty(address)) {
-        updatedBalances[address] = balance;
-      } else {
-        updatedBalances[address] = balance;
-      }
+      updatedBalances[address] = balance;
 
       // Save balances to localStorage
       localStorage.setItem('balances', JSON.stringify(updatedBalances));
@@ -90,26 +84,17 @@ export const BalanceContextProvider = (props: IProps) => {
     () => ({
       shouldBalanceUpdate,
       balanceData,
-      getBalance: (address: string) =>
-        balanceData.balances[address] || initialBalance, // Return initialBalance if the address is not found
+      getBalance: (address: string) => balanceData.balances[address] || initialBalance, // Return initialBalance if the address is not found
       setBalanceContext,
       addBalance,
       removeBalance,
       setShouldBalanceUpdate,
     }),
-    [
-      shouldBalanceUpdate,
-      balanceData,
-      setBalanceContext,
-      addBalance,
-      removeBalance,
-    ],
+    [shouldBalanceUpdate, balanceData, setBalanceContext, addBalance, removeBalance],
   );
 
   return (
-    <BalanceContext.Provider value={balanceContextValue}>
-      {props.children}
-    </BalanceContext.Provider>
+    <BalanceContext.Provider value={balanceContextValue}>{props.children}</BalanceContext.Provider>
   );
 };
 

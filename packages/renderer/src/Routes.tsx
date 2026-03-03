@@ -74,7 +74,10 @@ const Routes = (props: IRoutesProps) => {
           path="/"
           element={!isAuthenticated ? <SplashScreen {...props} /> : <Navigate to="/overview" />}
         />
-        <Route element={<NotFound />} />
+        <Route
+          path="*"
+          element={<NotFound />}
+        />
       </AppRoutes>
     </Suspense>
   );

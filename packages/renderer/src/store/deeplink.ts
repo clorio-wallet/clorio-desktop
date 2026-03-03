@@ -1,11 +1,11 @@
 import {atom} from 'recoil';
 
-interface DepplinkAtomProps {
+interface DeeplinkAtomProps {
   type?: string;
   data?: string;
 }
 
-export const deeplinkState = atom<DepplinkAtomProps>({
+export const deeplinkState = atom<DeeplinkAtomProps>({
   key: 'deeplinkAtom',
   default: {
     type: '',

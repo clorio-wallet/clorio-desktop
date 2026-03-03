@@ -1,6 +1,7 @@
 import {createRoot} from 'react-dom/client';
 import App from './App';
 import {Buffer} from 'buffer';
+import 'animate.css/animate.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {initHtmlElements} from './tools';
 import {NetworkSettingsProvider} from './contexts/NetworkContext';

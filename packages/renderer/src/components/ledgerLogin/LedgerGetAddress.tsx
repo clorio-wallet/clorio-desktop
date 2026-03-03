@@ -46,7 +46,14 @@ const LedgerGetAddress = ({accountNumber, toggleLoader}: IProps) => {
     if (walletIdData && !!publicKey) {
       toggleLoader();
       const id = +walletIdData?.idByPublicKey?.id || -1;
-      const success = await storeSession(publicKey, id, true, ledgerAccount, false);
+      const success = await storeSession({
+        address: publicKey,
+        id,
+        ledger: true,
+        ledgerAccount,
+        mnemonic: false,
+        accountNumber: 0,
+      });
       await updateWallet({
         address: publicKey,
         id,

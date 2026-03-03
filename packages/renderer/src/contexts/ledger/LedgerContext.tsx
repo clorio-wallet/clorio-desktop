@@ -1,9 +1,10 @@
-import { createContext, useState } from 'react';
-import { MINIMUM_LEDGER_ACCOUNT_NUMBER } from '../../tools';
-import type { ILedgerContext, ILedgerContextData } from './LedgerTypes';
+import {createContext, useState} from 'react';
+import type {ReactNode} from 'react';
+import {MINIMUM_LEDGER_ACCOUNT_NUMBER} from '../../tools';
+import type {ILedgerContext, ILedgerContextData} from './LedgerTypes';
 
 interface IProps {
-  children: React.ReactChild;
+  children: ReactNode;
 }
 
 const initLedgerData: ILedgerContextData = {
@@ -14,9 +15,7 @@ const initLedgerData: ILedgerContextData = {
 export const LedgerContext = createContext<Partial<ILedgerContext>>({});
 
 export const LedgerContextProvider = (props: IProps) => {
-  const [ledgerData, setLedgerData] = useState<ILedgerContextData>(
-    initLedgerData,
-  );
+  const [ledgerData, setLedgerData] = useState<ILedgerContextData>(initLedgerData);
 
   const setLedgerContext = (data: ILedgerContextData) => {
     setLedgerData(data);
@@ -31,10 +30,8 @@ export const LedgerContextProvider = (props: IProps) => {
   };
 
   return (
-    <LedgerContext.Provider value={ledgerDataContextValue}>
-      {props.children}
-    </LedgerContext.Provider>
+    <LedgerContext.Provider value={ledgerDataContextValue}>{props.children}</LedgerContext.Provider>
   );
 };
 
-export const { Consumer } = LedgerContext;
+export const {Consumer} = LedgerContext;
