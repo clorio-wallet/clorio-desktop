@@ -1,3 +1,5 @@
+@import "./styles/foundation/__tokens";
+@import "./styles/foundation/__base";
 @import "./styles/__vars";
 @import "./styles/__typo";
 @import "./styles/__buttons";
@@ -12,16 +14,15 @@
 @import "./styles/__zkapps";
 @import url("https://fonts.googleapis.com/css2?family=Mada:wght@200;300;400;500;600;700;900&display=swap");
 
-a {
-  text-decoration: none !important;
-}
+@import "./styles/legacy/__legacy";
 
 .App {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
   text-align: center;
-  border-radius: 10px;
+  width: 100%;
+  height: 100%;
 }
 
 .App-logo {
@@ -65,16 +66,15 @@ html {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  height: 104vh;
-  overflow-y: hidden;
+  height: 100vh;
+  overflow: hidden;
 }
 
 body {
   background: none !important;
   position: relative;
-  // left: 1vw;
-  width: 99vw;
-  top: 1vh;
-  bottom: 1vh;
-  height: 98vh;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
