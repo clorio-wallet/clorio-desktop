@@ -1,7 +1,6 @@
 import {useEffect, useMemo} from 'react';
 import {useRecoilState, useRecoilValue} from 'recoil';
 import {deeplinkState} from '../store/deeplink';
-import {URLSearchParams} from 'url';
 import {useNavigate} from 'react-router-dom';
 import {configState} from '../store';
 import {toast} from 'react-toastify';
