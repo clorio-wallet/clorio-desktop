@@ -1,4 +1,5 @@
 import {Link} from 'react-router-dom';
+import styles from './Button.module.scss';
 
 interface IProps {
   className?: string;
@@ -36,47 +37,69 @@ const Button = ({
     }
   };
 
-  const styleClass =
-    style === 'standard'
-      ? 'button non-selectable-text'
-      : style === 'primary'
-      ? `primary ${disabled ? 'primary disabled' : ''}`
-      : '';
+  const baseClasses = [
+    styles.buttonBase,
+    disableAnimation ? '' : styles.buttonAnimation,
+    style === 'primary'
+      ? styles.primary
+      : style === 'standard'
+        ? styles.standard
+        : style === 'no-style'
+          ? styles.noStyle
+          : '',
+    disabled ? styles.disabled : '',
+    variant ? `btn btn-${variant}` : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-  const button = (
-    <div
-      className={`${className} ${disableAnimation ? '' : ' button-animation '}  ${styleClass} ${
-        variant ? `btn btn-${variant}` : ''
-      }`}
-      onClick={clickHandler}
-    >
-      {loading ? (
-        <div className="LoaderWrapper">
-          <div className="LineWrapper">
-            <div className="LineTop" />
-          </div>
-        </div>
-      ) : (
-        <>
-          {!appendIcon && icon} &nbsp; {text} &nbsp; {appendIcon && icon}
-        </>
-      )}
-    </div>
+  const content = loading ? (
+    <span className={styles.loaderWrapper}>
+      <span className="LoaderWrapper">
+        <span className="LineWrapper">
+          <span className="LineTop" />
+        </span>
+      </span>
+    </span>
+  ) : (
+    <>
+      {!appendIcon && icon}
+      {text}
+      {appendIcon && icon}
+    </>
   );
 
-  const disabledButton = (
-    <div
-      className={`${className} ${disableAnimation ? '' : ' button-animation '}  ${styleClass} ${
-        variant ? `btn btn-${variant}` : ''
-      }`}
-    >
-      {!appendIcon && icon} &nbsp; {text} &nbsp; {appendIcon && icon}
-    </div>
-  );
-  if (disabled) {
-    return disabledButton;
+  if (link) {
+    if (disabled) {
+      return <span className={baseClasses}>{content}</span>;
+    }
+    return (
+      <Link
+        to={link}
+        className={baseClasses}
+        onClick={clickHandler}
+        role="button"
+      >
+        {content}
+      </Link>
+    );
   }
-  return link ? <Link to={link}> {button} </Link> : button;
+
+  if (style === 'no-style' && !onClick) {
+    return <span className={baseClasses}>{content}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      className={baseClasses}
+      onClick={clickHandler}
+      disabled={disabled}
+    >
+      {content}
+    </button>
+  );
 };
 
 export default Button;
