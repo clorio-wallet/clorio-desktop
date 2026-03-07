@@ -1,0 +1,54 @@
+.base {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  width: 100%;
+}
+
+.alignLeft {
+  text-align: left;
+}
+
+.alignCenter {
+  text-align: center;
+}
+
+.alignRight {
+  text-align: right;
+}
+
+.h1 {
+  font-size: clamp(38px, 5vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.h2 {
+  font-size: clamp(28px, 3.5vw, 42px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+.h3 {
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.body {
+  font-size: 18px;
+  line-height: 1.6;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.caption {
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
