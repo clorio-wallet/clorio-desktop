@@ -1,38 +1,62 @@
 import { Link } from 'react-router-dom';
 import Footer from './Footer';
 import Logo from './logo/Logo';
+import Button from './Button';
+import Typography from './Typography';
 
 const Homepage = () => {
   return (
-    <div className="full-screen-container-center">
-      <div className="homepage-card glass-card flex md-flex-col">
-        <div className="half-card hero-banner">
-          <div className="flex flex-col">
+    <div className="full-screen-container-center onboarding-screen">
+      <section className="homepage-card glass-card onboarding-shell splash-home animate__animated animate__fadeIn">
+        <header className="splash-home__header">
+          <div className="splash-home__logo">
             <Logo big />
-            <p className="text-center mt-3">
-              Access the power of the Mina Protocol Blockchain.
-            </p>
           </div>
-        </div>
-        <div className="half-card flex flex-col hero-buttons">
-          <Link to={'register'}>
-            <div className="button primary">
-              <span className="button-helper"></span>
-              Create new wallet
+        </header>
+
+        <main className="splash-home__body">
+          <div className="splash-home__copy">
+            <Typography
+              variant="h1"
+              className="splash-home__title"
+              align="center"
+            >
+              Secure your Mina wallet.
+              <br />
+              Start with a cleaner flow.
+            </Typography>
+            <Typography
+              variant="body"
+              className="splash-home__description"
+              align="center"
+            >
+              Create a new wallet, import an existing one, or connect Ledger from a single
+              onboarding path.
+            </Typography>
+          </div>
+
+          <div className="splash-home__actions">
+            <div className="splash-home__cta-wrap">
+              <Button
+                className="splash-home__cta"
+                text="Start onboarding"
+                link="/login-selection"
+                style="primary"
+              />
             </div>
-          </Link>
-          <p className="w-100 text-center mt-4 mb-4">or</p>
-          <Link to={'/login-selection'}>
-            <div className="button primary">
-              <span className="button-helper"></span>
-              Log-in
-            </div>
-          </Link>
-        </div>
-        <div className="mt-4 footer-container">
+            <Link
+              to="/login"
+              className="splash-home__link"
+            >
+              I already have a recovery phrase or private key
+            </Link>
+          </div>
+        </main>
+
+        <footer className="footer-container splash-home__footer">
           <Footer />
-        </div>
-      </div>
+        </footer>
+      </section>
     </div>
   );
 };
