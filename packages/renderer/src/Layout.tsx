@@ -15,9 +15,12 @@ import type {INetworkData} from './types';
 import ZkappIntegration from './components/ZkappIntegration';
 import {useWallet} from './contexts/WalletContext';
 
+import {useLocation} from 'react-router-dom';
+
 const Layout = () => {
   const [showLoader, setShowLoader] = useState<boolean>(false);
   const {wallet: sessionData, updateWallet} = useWallet();
+  const location = useLocation();
 
   const {data: networkData} = useQuery<INetworkData>(GET_NETWORK);
 
@@ -30,6 +33,21 @@ const Layout = () => {
     setShowLoader(true);
   };
   const isAuthenticated = !!sessionData.address;
+  const isOnboarding = location.pathname.startsWith('/onboarding') || location.pathname === '/login-selection' || location.pathname === '/';
+
+  if (isOnboarding && !isAuthenticated) {
+    return (
+      <div className="onboarding-full-height">
+        {isElectron() && <ZkappIntegration />}
+        <Routes
+          sessionData={sessionData}
+          toggleLoader={toggleLoader}
+          network={networkData}
+        />
+        <Alert />
+      </div>
+    );
+  }
 
   return (
     <div>
