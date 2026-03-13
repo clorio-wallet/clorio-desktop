@@ -1,9 +1,9 @@
 import Logo from './UI/logo/Logo';
 import Footer from './UI/Footer';
 import {useEffect, useState} from 'react';
-import Input from './UI/input/Input';
 import {ArrowRight} from 'react-feather';
 import Button from './UI/Button';
+import TextField from './UI/input/TextField';
 import useSecureStorage from '../hooks/useSecureStorage';
 import {toast} from 'react-toastify';
 import {Col} from 'react-bootstrap';
@@ -83,13 +83,12 @@ export default function RestoreSession({onLogin}: {onLogin: (privateKey: string)
           <div className="v-spacer" />
           <div className="half-card flex flex-col w-100 h-auto">
             <p className="text-center mt-3">Insert your password to restore the session</p>
-            <Input
+            <TextField
               type="text"
               hidden
               value={password}
-              inputHandler={e => {
-                setPassword(e.target.value);
-              }}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Password"
             />
             <div className="v-spacer" />
             <div className="flex flex-row sm-flex-col sm-flex-wrap-reverse gap-4">
