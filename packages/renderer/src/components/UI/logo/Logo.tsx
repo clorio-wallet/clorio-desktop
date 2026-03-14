@@ -1,4 +1,4 @@
-import LogoImage from './assets/logo-white.svg';
+import LogoImage from './assets/clorio-desktop-logo.svg';
 
 interface IProps {
   big?: boolean;
