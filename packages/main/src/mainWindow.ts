@@ -14,6 +14,18 @@ const isMac = process.platform === 'darwin';
 let browserWindow: BrowserWindow;
 let childWindow: BrowserWindow;
 
+const canSendToWindow = (window?: BrowserWindow) =>
+  !!window && !window.isDestroyed() && !window.webContents.isDestroyed();
+
+const sendToChildWindow = (channel: string, data: unknown) => {
+  if (!canSendToWindow(childWindow)) {
+    return false;
+  }
+
+  childWindow.webContents.send(channel, data);
+  return true;
+};
+
 const template = [
   ...(isMac
     ? [
@@ -445,6 +457,8 @@ const createEventHandler = (type: string, response: string) => {
 
   return {
     [type]: (_: Electron.IpcMainEvent, data: any) =>
+      canSendToWindow(browserWindow) &&
+      canSendToWindow(childWindow) &&
       browserWindow.webContents.send('clorio-event', {
         type: `clorio-${type}`,
         data,
@@ -453,7 +467,10 @@ const createEventHandler = (type: string, response: string) => {
         source: getBaseUrl(childWindow.webContents.getURL()),
       }),
     [`clorio-${response}`]: (_: Electron.IpcMainEvent, data: any) => {
-      childWindow.webContents.send(response, data);
+      if (!sendToChildWindow(response, data)) {
+        return;
+      }
+
       childWindow.focus();
     },
   };
@@ -483,8 +500,9 @@ const eventHandlers = {
   ...createEventHandler('sign-fields', 'signed-fields'),
   ...createEventHandler('verify-fields', 'verified-fields'),
   'focus-clorio': () => {
-    console.log('Focus main window');
-    browserWindow.focus();
+    if (canSendToWindow(browserWindow)) {
+      browserWindow.focus();
+    }
   },
 };
 
@@ -499,19 +517,11 @@ Object.keys(eventHandlers).forEach(eventName => {
 });
 
 ipcMain.on('account-change', (_: Electron.IpcMainInvokeEvent, arg) => {
-  try {
-    childWindow.webContents.send('accountsChanged', arg);
-  } catch (e) {
-    console.log('Child window not connected');
-  }
+  sendToChildWindow('accountsChanged', arg);
 });
 
 ipcMain.on('chain-change', (_: Electron.IpcMainInvokeEvent, arg) => {
-  try {
-    childWindow.webContents.send('chainChanged', arg);
-  } catch (e) {
-    console.log('Child window not connected');
-  }
+  sendToChildWindow('chainChanged', arg);
 });
 
 // Cleanup function
@@ -522,8 +532,7 @@ function cleanup() {
 }
 
 ipcMain.on('clorio-error', (event, data) => {
-  console.log('clorio-error', data);
-  childWindow.webContents.send('error', data);
+  sendToChildWindow('error', data);
 });
 // Call cleanup when windows are closed
 // @ts-ignore
