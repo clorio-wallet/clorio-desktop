@@ -21,6 +21,86 @@ import {
 
 const PACKAGE_ROOT = __dirname;
 const PROJECT_ROOT = join(PACKAGE_ROOT, '../..');
+const GRAPHQL_PROXY_PATH = '/__clorio_graphql_proxy';
+
+const clorioGraphqlProxy = () => ({
+  name: 'clorio-graphql-proxy',
+  configureServer(server) {
+    server.middlewares.use(GRAPHQL_PROXY_PATH, async (req, res) => {
+      const target = new URL(req.url || '', 'http://localhost').searchParams.get('target');
+
+      if (!target) {
+        res.statusCode = 400;
+        res.end('Missing target');
+        return;
+      }
+
+      let parsedTarget;
+      try {
+        parsedTarget = new URL(target);
+      } catch {
+        res.statusCode = 400;
+        res.end('Invalid target');
+        return;
+      }
+
+      if (!['http:', 'https:'].includes(parsedTarget.protocol)) {
+        res.statusCode = 400;
+        res.end('Unsupported target protocol');
+        return;
+      }
+
+      const chunks = [];
+      for await (const chunk of req) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+
+      const requestBody = chunks.length ? Buffer.concat(chunks) : undefined;
+      const requestHeaders = new Headers();
+
+      Object.entries(req.headers).forEach(([key, value]) => {
+        if (value === undefined || key === 'host' || key === 'content-length') {
+          return;
+        }
+
+        if (Array.isArray(value)) {
+          value.forEach(headerValue => requestHeaders.append(key, headerValue));
+          return;
+        }
+
+        requestHeaders.set(key, value);
+      });
+
+      try {
+        const response = await fetch(parsedTarget, {
+          method: req.method,
+          headers: requestHeaders,
+          body: requestBody,
+        });
+
+        res.statusCode = response.status;
+        response.headers.forEach((value, key) => {
+          if (key.toLowerCase() === 'content-encoding') {
+            return;
+          }
+          res.setHeader(key, value);
+        });
+
+        const responseBuffer = Buffer.from(await response.arrayBuffer());
+        res.end(responseBuffer);
+      } catch (error) {
+        res.statusCode = 502;
+        res.setHeader('content-type', 'application/json');
+        res.end(
+          JSON.stringify({
+            error: 'Failed to proxy GraphQL request',
+            message: error instanceof Error ? error.message : 'Unknown error',
+          }),
+        );
+      }
+    });
+  },
+});
 
 
 /**
@@ -62,6 +142,7 @@ const config = {
     react(),
     svgr(),
     wasm(),
+    clorioGraphqlProxy(),
     renderer.vite({
       preloadEntry: join(PACKAGE_ROOT, '../preload/src/index.ts'),
     }),
