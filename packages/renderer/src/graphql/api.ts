@@ -3,6 +3,16 @@ import {onError} from '@apollo/client/link/error';
 import type {NormalizedCacheObject} from '@apollo/client';
 import {INetworkOption} from '../hooks/useNetworkSettings';
 
+const getGraphqlUri = (networkSettings: INetworkOption) => {
+  const targetUrl = networkSettings?.url || import.meta.env.VITE_REACT_APP_GQL_SERVER;
+
+  if (!targetUrl) {
+    return '';
+  }
+
+  return targetUrl;
+};
+
 const httpLink = (networkSettings: INetworkOption) =>
   ApolloLink.from([
     onError(({graphQLErrors, networkError}) => {
@@ -15,7 +25,7 @@ const httpLink = (networkSettings: INetworkOption) =>
       if (networkError) console.log(`[Network error]: ${networkError}`);
     }),
     new HttpLink({
-      uri: networkSettings?.url || import.meta.env.VITE_REACT_APP_GQL_SERVER,
+      uri: getGraphqlUri(networkSettings),
       credentials: 'same-origin',
       fetchOptions: {
         reconnect: true,

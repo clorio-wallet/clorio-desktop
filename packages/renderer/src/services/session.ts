@@ -35,6 +35,8 @@ export interface WalletSession {
  */
 export const storeSession = (data: WalletSession): void => {
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+  // Keep the legacy passphrase flag synchronized with the session mnemonic state.
+  sessionStorage.setItem(PASSPHRASE_FLAG_KEY, JSON.stringify(data.mnemonic));
 };
 
 /**
@@ -58,7 +60,7 @@ export const updateUser = (address: string, id: number): void => {
 };
 
 /**
- * Removes the wallet session and the passphrase flag from sessionStorage.
+ * Removes the wallet session and any legacy passphrase flag from sessionStorage.
  */
 export const clearSession = (): void => {
   sessionStorage.removeItem(SESSION_KEY);
@@ -72,18 +74,29 @@ export const clearSession = (): void => {
 // ---------------------------------------------------------------------------
 
 /**
- * Stores a boolean flag that indicates whether the user is logging in with a
- * mnemonic passphrase (true) or a plain private key (false).
+ * Updates the mnemonic flag on the current session.
+ * Falls back to the legacy standalone flag when no session exists yet.
  */
 export const setPassphraseFlag = (isUsingMnemonic: boolean): void => {
+  const current = readSession();
+  if (current) {
+    storeSession({...current, mnemonic: isUsingMnemonic});
+    return;
+  }
+
   sessionStorage.setItem(PASSPHRASE_FLAG_KEY, JSON.stringify(isUsingMnemonic));
 };
 
 /**
- * Reads the passphrase flag stored by {@link setPassphraseFlag}.
- * Returns false when the flag has never been set.
+ * Reads the mnemonic flag from the current session.
+ * Falls back to the legacy standalone flag for compatibility.
  */
 export const getPassphraseFlag = (): boolean => {
+  const current = readSession();
+  if (current) {
+    return current.mnemonic;
+  }
+
   const raw = sessionStorage.getItem(PASSPHRASE_FLAG_KEY);
   return raw !== null ? (JSON.parse(raw) as boolean) : false;
 };

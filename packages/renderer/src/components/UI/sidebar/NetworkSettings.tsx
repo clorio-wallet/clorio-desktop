@@ -39,7 +39,7 @@ export default function NetworkSettings({
   const navigate = useNavigate();
   const [{selectedNetwork}, setNetworkState] = useRecoilState(networkState);
 
-  const defaultNetworkValue =
+  const selectedNetworkValue =
     availableNetworks.length > 1
       ? !settings?.label
         ? (availableNetworks as any[]).findIndex((network: any) =>
@@ -127,7 +127,7 @@ export default function NetworkSettings({
                 className="w-50"
                 aria-label="Select a network"
                 onChange={networkSelectHandler}
-                defaultValue={defaultNetworkValue}
+                value={selectedNetworkValue}
               >
                 {Object.keys(availableNetworks).map(network => {
                   const networkData = availableNetworks[network];
