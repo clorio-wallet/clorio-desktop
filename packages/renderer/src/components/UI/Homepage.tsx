@@ -1,10 +1,35 @@
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import Footer from './Footer';
 import Logo from './logo/Logo';
 import Button from './Button';
 import Typography from './Typography';
 
 const Homepage = () => {
+  const navigate = useNavigate();
+
+  const startOnboarding = () => {
+    if (!document.startViewTransition) {
+      navigate('/login-selection');
+      return;
+    }
+
+    document.startViewTransition(() => {
+      navigate('/login-selection');
+    });
+  };
+
+  const goToLogin = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!document.startViewTransition) {
+      navigate('/login');
+      return;
+    }
+
+    document.startViewTransition(() => {
+      navigate('/login');
+    });
+  };
+
   return (
     <div className="full-screen-container-center onboarding-screen">
       <section className="homepage-card glass-card onboarding-shell splash-home animate__animated animate__fadeIn">
@@ -18,20 +43,12 @@ const Homepage = () => {
           <div className="splash-home__copy">
             <Typography
               variant="h1"
-              className="splash-home__title"
+              className="splash-home__title font-mada"
               align="center"
             >
-              Secure your Mina wallet.
+              Your Mina wallet,
               <br />
-              Start with a cleaner flow.
-            </Typography>
-            <Typography
-              variant="body"
-              className="splash-home__description"
-              align="center"
-            >
-              Create a new wallet, import an existing one, or connect Ledger from a single
-              onboarding path.
+              simplified.
             </Typography>
           </div>
 
@@ -39,17 +56,11 @@ const Homepage = () => {
             <div className="splash-home__cta-wrap">
               <Button
                 className="splash-home__cta"
-                text="Start onboarding"
-                link="/login-selection"
+                text="Get started"
+                onClick={startOnboarding}
                 style="primary"
               />
             </div>
-            <Link
-              to="/login"
-              className="splash-home__link"
-            >
-              I already have a recovery phrase or private key
-            </Link>
           </div>
         </main>
 

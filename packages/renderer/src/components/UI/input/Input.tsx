@@ -6,17 +6,17 @@ const Input = ({
   type,
   value,
   inputHandler,
+  inputFocusHandler,
+  inputBlurHandler,
   placeholder,
   small,
   hidden,
   appendIcon,
+  id,
+  name,
 }: IInputProps) => {
   const [showText, setShowText] = useState<boolean>(false);
 
-  /**
-   * If hidden props is set, hide or show the input field (based on the showText status).
-   * @returns string
-   */
   const inputTypeHandler = () => {
     if (hidden) {
       return showText ? type : 'password';
@@ -34,8 +34,11 @@ const Input = ({
         className={`input1 ${hidden && 'show-icon'}`}
         type={inputTypeHandler()}
         value={value}
-        name="name"
+        name={name}
+        id={id}
         onChange={inputHandler}
+        onFocus={inputFocusHandler}
+        onBlur={inputBlurHandler}
         placeholder={placeholder}
         autoComplete="off"
         min="0"
