@@ -1,177 +1,133 @@
-import {isElectron} from '/@/tools/environment';
-import {useState} from 'react';
-import {Row, Col} from 'react-bootstrap';
-import {ArrowLeft, ArrowRight} from 'react-feather';
+import { isElectron } from '/@/tools/environment';
+import { useState } from 'react';
+import { ArrowLeft, ArrowRight } from 'react-feather';
 import Button from '../../components/UI/Button';
 import ReactTooltip from 'react-tooltip';
 
 interface IProps {
   mnemonic: string;
   closeVerification: () => void;
-  completeRegistration: () => void;
-  storePassphraseHandler: () => void;
-  storePassphrase?: boolean;
   goBack: () => void;
+  completeRegistration: () => void;
+  storePassphraseHandler: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  storePassphrase: boolean;
 }
 
-export function VerifyMnemonic({
+const VerifyMnemonic = ({
   mnemonic,
   closeVerification,
+  goBack,
   completeRegistration,
   storePassphraseHandler,
   storePassphrase,
-  goBack,
-}: IProps) {
-  const [disableButton, setDisableButton] = useState<boolean>(true);
-  const [wordsFoundArray, setWordsFoundArray] = useState<string[]>([]);
+}: IProps) => {
+  const [removedIndex] = useState([
+    Math.floor(Math.random() * 4) + 1,
+    Math.floor(Math.random() * 4) + 5,
+    Math.floor(Math.random() * 4) + 9,
+  ]);
+  const [typedWords, setTypedWords] = useState(['', '', '']);
 
-  /**
-   * Generate an array containing 4 to 12 words positions to be guessed
-   * @returns number[]
-   */
-  const selectRandomIndexes = () => {
-    const numberOfWords = 3;
-    const randomIndexes: any[] = [];
-    while (randomIndexes.length <= numberOfWords) {
-      const tmpIndex = Math.floor(1 + Math.random() * 12);
-      if (!randomIndexes.includes(tmpIndex)) {
-        randomIndexes.push(tmpIndex);
-      }
-    }
-    return randomIndexes.sort();
-  };
-  const [removedIndex] = useState<number[]>(selectRandomIndexes());
-
-  /**
-   * Generate an array containing all the passphrase words except the randomly removed words
-   * @returns string|null[]
-   */
-  const removeWords = () => {
-    const newPassphrase = [];
-    const passphraseSplit = mnemonic.split(' ');
-    for (const index in passphraseSplit) {
-      if (removedIndex.includes(parseInt(index) + 1)) {
-        newPassphrase.push(null);
-      } else {
-        newPassphrase.push(passphraseSplit[index]);
-      }
-    }
-    return newPassphrase;
-  };
-
-  /**
-   * Check if the word is included inside the original passphrase and the position is correct.
-   * If all the words have been found, enable the proceed button.
-   * @param index index of the word
-   * @param word input word
-   */
   const validateWord = (index: number, word: string) => {
-    const wordsFound = wordsFoundArray;
-    const splitWords = mnemonic.split(' ');
-    if (splitWords[index] === word) {
-      wordsFound.push(word);
-    } else if (wordsFound.includes(splitWords[index])) {
-      const wordIndex = wordsFound.indexOf(splitWords[index]);
-      wordsFound.splice(wordIndex, 1);
-    }
-    setWordsFoundArray(wordsFound);
-    if (!disableButton) {
-      if (wordsFound.length !== removedIndex.length) {
-        setDisableButton(true);
-      }
-    } else if (wordsFound.length === removedIndex.length) {
-      setDisableButton(false);
+    const nextTyped = [...typedWords];
+    const internalIndex = removedIndex.indexOf(index + 1);
+    if (internalIndex !== -1) {
+      nextTyped[internalIndex] = word.trim().toLowerCase();
+      setTypedWords(nextTyped);
     }
   };
+
+  const removeWords = () => {
+    return mnemonic.split(' ').map((el, index) => {
+      return removedIndex.includes(index + 1) ? null : el;
+    });
+  };
+
+  const isWordCorrect = (index: number) => {
+    const word = mnemonic.split(' ')[index];
+    const internalIndex = removedIndex.indexOf(index + 1);
+    return typedWords[internalIndex] === word;
+  };
+
+  const disableButton = !isWordCorrect(removedIndex[0] - 1) ||
+    !isWordCorrect(removedIndex[1] - 1) ||
+    !isWordCorrect(removedIndex[2] - 1);
 
   return (
-    <div className="animate__animated animate__fadeIn glass-card registration-card justify-center">
-      <div className="">
-        <div className="w-100">
-          <div className="flex flex-col flex-vertical-center">
-            <h1>Create new wallet</h1>
-            <p className="text-center mt-1">Verify your passphrase</p>
-            <div className="divider" />
-          </div>
-        </div>
-        <div className="v-spacer" />
-        <div className="passphrase-box">
+    <div className="oi-page animate__animated animate__fadeIn">
+      <div className="oi-header">
+        <h1 className="oi-title">Create new wallet</h1>
+        <p className="oi-description">Verify your recovery phrase by filling in the missing words.</p>
+      </div>
+
+      <div className="oi-content-section">
+        <div className="oi-grid oi-grid--3-col mb-5">
           {removeWords().map((el, index) => {
-            return el !== null ? (
+            const isMissing = el === null;
+            return (
               <div
                 key={index}
-                className="inline-block-element word-box align-left"
+                className={`oi-word-cell ${isMissing ? 'oi-word-cell--input' : 'oi-word-cell--static'}`}
               >
-                <span className="word-index">{index + 1}.</span> <span>{el}</span>
-              </div>
-            ) : (
-              <div
-                key={index}
-                className="inline-block-element word-box align-left"
-              >
-                <span className="word-index">{index + 1}.</span>{' '}
-                <input
-                  className="validation-input"
-                  onChange={e => validateWord(index, e.currentTarget.value)}
-                  autoComplete="off"
-                />
+                <span className="oi-word-index">{index + 1}</span>
+                {isMissing ? (
+                  <input
+                    className="oi-word-input"
+                    placeholder="Type word..."
+                    onChange={e => validateWord(index, e.currentTarget.value)}
+                    autoComplete="off"
+                    autoFocus={index === removedIndex[0] - 1}
+                  />
+                ) : (
+                  <span className="oi-word-static-text">{el}</span>
+                )}
               </div>
             );
           })}
         </div>
-        <div className="v-spacer" />
-        <div>
-          <span
-            className="checkbox-container"
-            data-tip={
-              !isElectron()
-                ? 'For your security, you can store the passphrase only on Clorio Desktop'
-                : undefined
-            }
-          >
+
+        <div className="flex justify-center mb-4">
+          <label className="oi-confirm-label cursor-pointer" htmlFor="storePassphrase">
             <input
-              className="checkbox"
+              className="oi-checkbox"
               type="checkbox"
               name="storePassphrase"
               id="storePassphrase"
-              value={isElectron() ? 'show' : ''}
               onChange={storePassphraseHandler}
               checked={storePassphrase}
               disabled={!isElectron()}
             />
-            <label
-              className="ml-2 checkbox-label"
-              htmlFor="storePassphrase"
-            >
-              Store the passphrase
-            </label>
-          </span>
+            <span>Store the passphrase encrypted on this device</span>
+          </label>
         </div>
-        <Row>
-          <Col xs={6}>
-            <Button
-              className="big-icon-button"
-              icon={<ArrowLeft />}
-              text="Go back"
-              onClick={() => {
-                goBack();
-                closeVerification();
-              }}
-            />
-          </Col>
-          <Col xs={6}>
-            <Button
-              text="Complete"
-              style="primary"
-              icon={<ArrowRight />}
-              appendIcon
-              onClick={completeRegistration}
-              disabled={disableButton}
-            />
-          </Col>
-        </Row>
+      </div>
+
+      <div className="oi-footer-row mt-4">
+        <div className="oi-actions oi-actions--wide">
+          <Button
+            className="oi-back"
+            icon={<ArrowLeft />}
+            text="Back"
+            onClick={() => {
+              goBack();
+              closeVerification();
+            }}
+            style="quiet"
+            disableHoverStyle
+          />
+          <Button
+            text="Complete & Create"
+            style="primary"
+            icon={<ArrowRight />}
+            appendIcon
+            onClick={completeRegistration}
+            disabled={disableButton}
+          />
+        </div>
       </div>
       <ReactTooltip id="VerifyMnemonic" />
     </div>
   );
-}
+};
+
+export default VerifyMnemonic;

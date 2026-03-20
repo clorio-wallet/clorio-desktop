@@ -1,9 +1,8 @@
-import {Col, Row} from 'react-bootstrap';
+import {useState} from 'react';
+import {Shield, ArrowLeft, ArrowRight} from 'react-feather';
 import Button from './UI/Button';
 import Input from './UI/input/Input';
 import {ModalContainer} from './UI/modals';
-import {useState} from 'react';
-import {ArrowLeft, ArrowRight} from 'react-feather';
 
 interface ISecureDataStorageComponent {
   show: boolean;
@@ -27,56 +26,59 @@ function SecureDataStorageComponent({show, onClose, onSubmit}: ISecureDataStorag
   const disableButton = !passwordRegex.test(password);
 
   return (
-    <ModalContainer show={show}>
-      <div className='max-w-600'>
-        <div className="w-100 ">
-          <div className="flex flex-col flex-vertical-center">
-            <h1>Create password</h1>
-            <p className="text-center mt-1">
-              We will encrypt your credentials and with the following password you&apos;ll be able to
-              access your wallet.
-              <br />
+    <ModalContainer show={show} className="max-width-600">
+      <div className="oi-page animate__animated animate__fadeIn">
+        <div className="oi-header mb-2">
+          <div className="mb-3 p-3 rounded-full bg-white-5 flex-center">
+            <Shield size={32} className="purple-text" />
+          </div>
+          <h1 className="oi-title">Set up a password</h1>
+          <p className="oi-description">
+            Create a password to unlock your wallet on this device.
+          </p>
+        </div>
+
+        <div className="oi-security-banner w-100">
+          <div className="oi-security-text">
+            <strong>Password Requirements</strong>
+            <p>
+              Must be 6-16 characters long, including at least one number 
+              and one special character (!@#$%^&*).
             </p>
-            <div className="divider w-100" />
           </div>
         </div>
-        <div className="v-spacer" />
-        <p
-          className="text-center"
-          style={{fontSize: 'medium'}}
-        >
-          The password must be at least 6 characters long, it must contain at least a number and at
-          least one special character (!@#$%^&*).
-        </p>
-        <Input
-          type="text"
-          hidden
-          value={password}
-          inputHandler={e => {
-            setPassword(e.target.value);
-          }}
-        />
-        <div className="v-spacer" />
-        <Row>
-          <Col xs={6}>
+
+        <div className="w-100 mt-2">
+          <label className="oi-section-label mb-2 px-1">Password</label>
+          <Input
+            type="text"
+            hidden
+            placeholder="Create a password..."
+            value={password}
+            inputHandler={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setPassword(e.target.value);
+            }}
+          />
+        </div>
+
+        <div className="oi-footer-row w-100 mt-4">
+          <div className="oi-actions oi-actions--wide mx-auto">
             <Button
-              className="big-icon-button"
-              icon={<ArrowLeft />}
               text="Cancel"
+              icon={<ArrowLeft />}
               onClick={onCloseHandler}
+              style="no-style"
             />
-          </Col>
-          <Col xs={6}>
             <Button
               onClick={onSubmitHandler}
-              text="Confirm"
+              text="Continue"
               style="primary"
               icon={<ArrowRight />}
               disabled={disableButton}
               appendIcon
             />
-          </Col>
-        </Row>
+          </div>
+        </div>
       </div>
     </ModalContainer>
   );

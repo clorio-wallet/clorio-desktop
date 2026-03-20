@@ -1,8 +1,7 @@
-import {useEffect, useState} from 'react';
-import {ArrowLeft, ArrowRight} from 'react-feather';
-import type {IKeypair} from '../../../types';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, ArrowRight } from 'react-feather';
+import type { IKeypair } from '../../../types';
 import Button from '../Button';
-import Spinner from '../Spinner';
 import AccountAvatar from './AccountAvatar';
 
 interface IProps {
@@ -12,71 +11,49 @@ interface IProps {
   goToNext: () => void;
 }
 
-const AccountSelection = ({generateKeypair, setKeypair, goToNext, selectedKeypair}: IProps) => {
+const AccountSelection = ({ generateKeypair, setKeypair, goToNext, selectedKeypair }: IProps) => {
   const isNextDisabled = () => {
     return !selectedKeypair?.privateKey;
   };
+
   return (
-    <div className="animate__animated animate__fadeIn glass-card ">
-      <div className="w-100">
-        <div className="flex flex-col flex-vertical-center">
-          <h1>Create new wallet</h1>
-          <p className="text-center mt-1">Select an avatar</p>
-          <div className="divider" />
+    <div className="oi-page animate__animated animate__fadeIn">
+      <div className="oi-header">
+        <h1 className="oi-title">Create new wallet</h1>
+        <p className="oi-description">Select an avatar for your new account.</p>
+      </div>
+
+      <div className="onboarding-avatar-grid">
+        <div className="flex flex-row justify-center gap-4 sm-flex-wrap">
+          {[0, 1, 2, 3, 4].map(idx => (
+            <AccountAvatar
+              key={idx}
+              setKeypair={setKeypair}
+              generateKeypair={generateKeypair}
+              selectedKeypair={selectedKeypair}
+            />
+          ))}
         </div>
       </div>
-      <div className="animate__animated animate__fadeIn ">
-        <div className="flex flex-row mt-4 gap-4 sm-flex-wrap">
-          <AccountAvatar
-            setKeypair={setKeypair}
-            generateKeypair={generateKeypair}
-            key={0}
-            selectedKeypair={selectedKeypair}
+
+      <div className="oi-footer-row mt-4">
+        <div className="oi-actions oi-actions--wide mx-auto">
+          <Button
+            className="oi-back"
+            text="Back"
+            icon={<ArrowLeft />}
+            link="/login-selection"
+            style="quiet"
+            disableHoverStyle
           />
-          <AccountAvatar
-            setKeypair={setKeypair}
-            generateKeypair={generateKeypair}
-            key={1}
-            selectedKeypair={selectedKeypair}
+          <Button
+            onClick={goToNext}
+            text="Next"
+            style="primary"
+            icon={<ArrowRight />}
+            appendIcon
+            disabled={isNextDisabled()}
           />
-          <AccountAvatar
-            setKeypair={setKeypair}
-            generateKeypair={generateKeypair}
-            key={2}
-            selectedKeypair={selectedKeypair}
-          />
-          <AccountAvatar
-            setKeypair={setKeypair}
-            generateKeypair={generateKeypair}
-            key={3}
-            selectedKeypair={selectedKeypair}
-          />
-          <AccountAvatar
-            setKeypair={setKeypair}
-            generateKeypair={generateKeypair}
-            key={4}
-            selectedKeypair={selectedKeypair}
-          />
-        </div>
-        <div className="flex flex-row mt-5 full-width sm-flex-wrap-reverse">
-          <div className="half-card py-3">
-            <Button
-              className="big-icon-button"
-              text="Go back"
-              icon={<ArrowLeft />}
-              link={'/'}
-            />
-          </div>
-          <div className="half-card py-3">
-            <Button
-              onClick={goToNext}
-              text="Next"
-              style="primary"
-              icon={<ArrowRight />}
-              appendIcon
-              disabled={isNextDisabled()}
-            />
-          </div>
         </div>
       </div>
     </div>
