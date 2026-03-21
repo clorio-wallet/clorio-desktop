@@ -10,8 +10,8 @@ function LoginSelection() {
       <div className="homepage-card glass-card flex flex-col flex-vertical-center">
         <div className="w-100">
           <div className="flex flex-col flex-vertical-center">
-            <h1>Login</h1>
-            <p className="text-center mt-1">Select a method to login</p>
+          <h1>Import your wallet</h1>
+          <p className="text-center mt-1">Choose how you want to access your wallet</p>
             <div className="divider" />
           </div>
         </div>
@@ -47,7 +47,7 @@ function LoginSelection() {
         <div className="w-50 mt-5">
           <Button
             className="big-icon-button"
-            text="Go back"
+            text="Back"
             link="/"
             icon={<ArrowLeft />}
           />

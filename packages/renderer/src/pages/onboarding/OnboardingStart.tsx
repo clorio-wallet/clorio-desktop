@@ -1,4 +1,4 @@
-import {Link} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {ArrowRight, Cpu, Key, PlusCircle} from 'react-feather';
 import Footer from '../../components/UI/Footer';
 import Typography from '../../components/UI/Typography';
@@ -27,9 +27,23 @@ const methods = [
 ];
 
 export default function OnboardingStart() {
+  const navigate = useNavigate();
+
+  const handleNavigation = (to: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!document.startViewTransition) {
+      navigate(to);
+      return;
+    }
+
+    document.startViewTransition(() => {
+      navigate(to);
+    });
+  };
+
   return (
     <div className="onboarding-layout animate__animated animate__fadeIn">
-      {/* ── Header matching the step pages ── */}
+      {/* ── Header ── */}
       <header className="onboarding-layout__header">
         <div className="onboarding-layout__brand">
           <Logo />
@@ -39,7 +53,7 @@ export default function OnboardingStart() {
       {/* ── Main ── */}
       <main className="onboarding-layout__main onboarding-start-main">
         <div className="onboarding-start-copy">
-          <Typography variant="h2" className="onboarding-start-title">
+          <Typography variant="h2" className="onboarding-start-title font-mada">
             Choose how to get started.
           </Typography>
           <Typography variant="body" className="onboarding-start-subtitle">
@@ -49,9 +63,10 @@ export default function OnboardingStart() {
 
         <div className="onboarding-method-grid">
           {methods.map(method => (
-            <Link
+            <a
               key={method.title}
-              to={method.to}
+              href={method.to}
+              onClick={handleNavigation(method.to)}
               className={`onboarding-method-card ${method.primary ? 'onboarding-method-card--primary' : ''}`}
             >
               <div className="onboarding-method-card__icon">{method.icon}</div>
@@ -70,7 +85,7 @@ export default function OnboardingStart() {
               <span className="onboarding-method-card__arrow">
                 <ArrowRight width={18} height={18} />
               </span>
-            </Link>
+            </a>
           ))}
         </div>
       </main>
