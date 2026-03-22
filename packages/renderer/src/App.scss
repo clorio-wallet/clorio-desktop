@@ -9,9 +9,13 @@
 @import "./styles/__table";
 @import "./styles/__homepage";
 @import "./styles/__new_design";
+@import "./styles/__restore_session";
 @import "./styles/__accountAvatar";
 @import "./styles/__sidebar";
+@import "./styles/__app_settings";
 @import "./styles/__zkapps";
+@import "./components/balance/Balance.scss";
+@import "./components/transactionsTable/TransactionsTable.scss";
 @import url("https://fonts.googleapis.com/css2?family=Mada:wght@200;300;400;500;600;700;900&display=swap");
 
 @import "./styles/legacy/__legacy";
@@ -61,8 +65,8 @@
 }
 
 html {
-  background-color: #171717;
-  background: url("./squares-bg.svg");
+  background-color: #0c0d13;
+  background-image: url("./squares-bg.svg");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;

@@ -1,0 +1,192 @@
+/* ═══════════════════════════════════════════════════════
+   SendTX Page Layout — Intentional Rhythm
+   ═══════════════════════════════════════════════════════ */
+
+.sendtx-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+  background: transparent;
+}
+
+/* ── Content Wrapper ── */
+.sendtx-content {
+  width: 100%;
+  // max-width: 1060px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation-duration: 360ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top center;
+  will-change: transform, opacity;
+}
+
+.sendtx-content--forward {
+  animation-name: sendtx-step-enter-forward;
+}
+
+.sendtx-content--backward {
+  animation-name: sendtx-step-enter-backward;
+}
+
+@keyframes sendtx-step-enter-forward {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sendtx-step-enter-backward {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Header ── */
+.sendtx-layout__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sendtx-layout__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    transform: translateX(-2px);
+  }
+}
+
+.sendtx-layout__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  flex: 1;
+}
+
+/* ── Step Indicator (subtle) ── */
+.sendtx-layout__step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sendtx-layout__step-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+
+  strong {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+  }
+}
+
+.sendtx-layout__step-track {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sendtx-layout__step-segment {
+  height: 3px;
+  width: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--active {
+    background: linear-gradient(90deg, #c197ff, #9e8cff);
+    width: 24px;
+    box-shadow: 0 0 12px rgba(193, 151, 255, 0.4);
+    animation: sendtx-step-pulse 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  &--done {
+    background: rgba(193, 151, 255, 0.4);
+  }
+}
+
+@keyframes sendtx-step-pulse {
+  0% {
+    box-shadow: 0 0 0 rgba(193, 151, 255, 0);
+    transform: scaleX(0.88);
+  }
+  100% {
+    box-shadow: 0 0 12px rgba(193, 151, 255, 0.4);
+    transform: scaleX(1);
+  }
+}
+
+/* ── Main Content ── */
+.sendtx-layout__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .sendtx-layout__header {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .sendtx-layout__back {
+    width: 36px;
+    height: 36px;
+  }
+
+  .sendtx-layout__title {
+    font-size: 1rem;
+  }
+
+  .sendtx-layout__main {
+    padding: 20px 16px;
+  }
+  
+  .sendtx-content {
+    max-width: 100%;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .sendtx-layout__back,
+  .sendtx-content,
+  .sendtx-layout__step-segment {
+    transition: none !important;
+    animation: none !important;
+  }
+}
