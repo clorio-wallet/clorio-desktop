@@ -26,9 +26,9 @@ export const ConfirmCustomDelegation = ({closeModal, confirmCustomDelegate}: IPr
   return (
     <div className="min-width-500">
       <div className="w-100">
-        <div className="flex flex-col flex-vertical-center">
+        <div className="flex flex-col ">
           <h1 className="mb-0">Custom delegation </h1>
-          <p className="text-center mt-1 mb-1">Delegate to someone that is not in the list</p>
+          <p className="mt-1 mb-1">Delegate to someone that is not in the list</p>
           <div className="divider w-100" />
         </div>
       </div>
@@ -51,10 +51,10 @@ export const ConfirmCustomDelegation = ({closeModal, confirmCustomDelegate}: IPr
       <Row>
         <Col xs={6}>
           <Button
-            className="big-icon-button"
             icon={<ArrowLeft />}
             text="Cancel"
             onClick={closeModal}
+            style="quiet"
           />
         </Col>
         <Col xs={6}>

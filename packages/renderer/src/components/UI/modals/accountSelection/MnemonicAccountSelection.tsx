@@ -44,7 +44,7 @@ const MnemonicAccountSelection = ({
   const [storedAccounts, setStoredAccounts] = useState<IWalletData[]>([]);
   const navigate = useNavigate();
   const {updateWallet} = useWallet();
-  const {decryptData} = useSecureStorage();
+  const {decryptData, hasEncryptedData} = useSecureStorage();
 
   const [fetchUserId] = useLazyQuery<IWalletIdData>(GET_ID, {
     variables: {publicKey: ''},
@@ -101,16 +101,16 @@ const MnemonicAccountSelection = ({
     }
     try {
       let mnemonic;
-      if (hasMnemonic) {
+      if (hasEncryptedData) {
         mnemonic = decryptData(passphrase);
       }
       const keypair = await deriveAccountFromMnemonic(mnemonic || passphrase, accountId);
       if (!accountExists(keypair?.pubKey)) {
         if (keypair) {
-          const {data} = await fetchUserId({variables: {publicKey: keypair?.priKey}});
+          const {data} = await fetchUserId({variables: {publicKey: keypair.pubKey}});
           const userId = +data?.idByPublicKey?.id || -1;
           await pushAccount({address: keypair.pubKey, accountId});
-          const success = await storeSession({
+          await storeSession({
             address: keypair.pubKey,
             id: userId,
             ledger: false,
@@ -119,14 +119,15 @@ const MnemonicAccountSelection = ({
             accountNumber: accountId,
           });
           await updateWallet({
-            address: keypair.publicKey,
+            address: keypair.pubKey,
             id: userId,
             ledger: false,
             ledgerAccount: 0,
             mnemonic: true,
             accountNumber: accountId,
+            isAuthenticated: true,
           });
-          if (success && setShouldBalanceUpdate) {
+          if (setShouldBalanceUpdate) {
             setShouldBalanceUpdate(true);
             onAccountChange({publicKey: keypair.pubKey, accountId});
             setAccountId(1);
@@ -224,7 +225,7 @@ const MnemonicAccountSelection = ({
                 />
                 <Input
                   value={passphrase}
-                  placeholder={hasMnemonic ? 'Password' : 'Passphrase '}
+                  placeholder={hasEncryptedData ? 'Password' : 'Passphrase '}
                   type="text"
                   hidden
                   className="no-mb"

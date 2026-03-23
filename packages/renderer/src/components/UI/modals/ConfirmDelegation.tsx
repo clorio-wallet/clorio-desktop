@@ -35,6 +35,7 @@ export const ConfirmDelegation = ({
             className="big-icon-button"
             text="Cancel"
             onClick={closeModal}
+            style="quiet"
           />
         </Col>
         <Col xs={6}>
