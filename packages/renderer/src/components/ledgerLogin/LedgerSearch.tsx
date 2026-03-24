@@ -1,42 +1,47 @@
 import LedgerLoader from '../UI/ledgerLogin/LedgerLoader';
-import Button from '../UI/Button';
 import {ArrowLeft} from 'react-feather';
+import Button from '../UI/Button';
 
 const LedgerSearch = () => {
   return (
-    <div>
-      <div className="w-100">
-        <div className="flex flex-col flex-vertical-center">
-          <h1>Login</h1>
-          <p className="text-center mt-1">Connect your Ledger wallet and open the Mina app</p>
-          <div className="divider w-100" />
+    <div className="ledger-page animate__animated animate__fadeIn">
+      {/* ── Header ── */}
+      <div className="oi-header">
+        <h1 className="oi-title">Connect Ledger</h1>
+        <p className="oi-description">
+          Connect your Ledger device to your computer and open the Mina app to get started.
+        </p>
+      </div>
+
+      {/* ── Animation ── */}
+      <div className="ledger-animation-container">
+        <LedgerLoader />
+      </div>
+
+      {/* ── Purchase hint ── */}
+      <div className="ledger-purchase-hint">
+        Do you need a Ledger wallet?
+        <a
+          href={import.meta.env.VITE_REACT_APP_LEDGER_URL}
+          target="__blank"
+        >
+          Buy it here
+        </a>
+      </div>
+
+      {/* ── Footer row ── */}
+      <div className="oi-footer-row mt-auto">
+        <div className="oi-actions ">
+          <Button
+            className="oi-back"
+            text="Back"
+            icon={<ArrowLeft />}
+            link="/login-selection"
+            style="no-style"
+          />
         </div>
       </div>
-      <div className="min-height-200 pt-5">
-        <LedgerLoader width="500px" />
-        <div className="mt-3">
-          Do you need a Ledger wallet?
-          <a
-            className="inline-block-element"
-            href={import.meta.env.VITE_REACT_APP_LEDGER_URL}
-            target="__blank"
-          >
-            <Button
-              style="no-style"
-              className="purple-text"
-              text="Buy it here"
-            />
-          </a>
-        </div>
-        <Button
-          className="big-icon-button mt-3"
-          text="Go back"
-          style="no-style"
-          icon={<ArrowLeft />}
-          link={'/login-selection'}
-        />
-      </div>
-    </div>
+    </div >
   );
 };
 

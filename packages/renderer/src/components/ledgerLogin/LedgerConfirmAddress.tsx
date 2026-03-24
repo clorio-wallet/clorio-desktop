@@ -1,5 +1,4 @@
-import { Col, Row } from 'react-bootstrap';
-import { ArrowLeft, ArrowRight } from 'react-feather';
+import {ArrowLeft, ArrowRight} from 'react-feather';
 import Button from '../UI/Button';
 
 interface IProps {
@@ -9,26 +8,28 @@ interface IProps {
 
 const LedgerConfirmAddress = ({ publicKey, setSession }: IProps) => {
   return publicKey ? (
-    <div className="min-width-500">
-      <div className="align-left mt-3 mb-2 label">
-        <strong>This is your public key</strong>
+    <div className="animate__animated animate__fadeInUp mt-4 w-100 flex flex-col items-center">
+      <div className="oi-section-header w-100 max-width-480 mx-auto mb-2">
+        <span className="oi-section-label opacity-60">Your Ledger Address</span>
       </div>
-      <div className="wrap-input1 validate-input passphrase-box">
-        <h5 className="w-100 pl-3 selectable-text mb-0 px-2">{publicKey}</h5>
+      
+      <div className="oi-word-cell oi-word-cell--full max-width-480 mx-auto mb-4 py-3">
+        <span className="oi-word-static-text selectable-text font-mono text-center w-100">{publicKey}</span>
       </div>
-      <p className="full-width-align-center my-4">
-        Please confirm your address on ledger{' '}
+      
+      <p className="text-center opacity-80 max-width-480 mx-auto px-4 mb-5">
+        Please confirm this address on your Ledger device to continue.
       </p>
-      <Row className="mt-4">
-        <Col xs={6}>
+      
+      <div className="oi-footer-row w-100 mt-2">
+        <div className="oi-actions oi-actions--wide mx-auto">
           <Button
-            className="big-icon-button"
+            className="oi-back"
             icon={<ArrowLeft />}
-            text="Go back"
+            text="Back"
             link="/login-selection"
+            style="no-style"
           />
-        </Col>
-        <Col xs={6}>
           <Button
             onClick={setSession}
             text="Access wallet"
@@ -36,12 +37,10 @@ const LedgerConfirmAddress = ({ publicKey, setSession }: IProps) => {
             icon={<ArrowRight />}
             appendIcon
           />
-        </Col>
-      </Row>
+        </div>
+      </div>
     </div>
-  ) : (
-    <></>
-  );
+  ) : null;
 };
 
 export default LedgerConfirmAddress;
