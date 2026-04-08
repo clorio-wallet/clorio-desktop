@@ -1,4 +1,4 @@
-import {useContext, useState} from 'react';
+import {useCallback, useContext, useMemo, useState} from 'react';
 import {DEFAULT_QUERY_REFRESH_INTERVAL, storeSession, trimMiddle} from '/@/tools';
 import Avatar from '/@/tools/avatar/avatar';
 import MnemonicAccountSelection from '../modals/accountSelection/MnemonicAccountSelection';
@@ -14,6 +14,16 @@ import NetworkSettings from './NetworkSettings';
 import {renderNetworkLabel} from './SidebarHelper';
 import {Repeat} from 'react-feather';
 import {useWallet} from '/@/contexts/WalletContext';
+import '/@/styles/__app_settings.scss';
+import Button from '../Button';
+
+interface AppSettingsProps {
+  toggleLoader?: (state?: boolean) => void;
+  logout: () => void;
+  lockSession: () => void;
+  statusDot: React.ReactNode;
+  network?: any;
+}
 
 export default function AppSettings({
   toggleLoader,
@@ -21,17 +31,17 @@ export default function AppSettings({
   lockSession,
   statusDot,
   network,
-}: any | {toggleLoader: (state?: boolean) => void}) {
+}: AppSettingsProps) {
   const [showModal, setShowModal] = useState(false);
   const {wallet, updateWallet} = useWallet();
-  const {address, mnemonic: isUsingMnemonic} = wallet;
+  const {address, mnemonic: hasMnemonic} = wallet;
   const {addBalance, shouldBalanceUpdate, setShouldBalanceUpdate} =
     useContext<Partial<IBalanceContext>>(BalanceContext);
+  const navigate = useNavigate();
 
   const [fetchWalletID] = useLazyQuery<IWalletIdData>(GET_ID, {
     variables: {publicKey: address, skip: !address},
   });
-  const navigate = useNavigate();
 
   const [balanceRefetch] = useLazyQuery<IBalanceQueryResult>(GET_BALANCE, {
     variables: {
@@ -40,123 +50,133 @@ export default function AppSettings({
     },
     fetchPolicy: 'network-only',
     pollInterval: DEFAULT_QUERY_REFRESH_INTERVAL,
-    onCompleted: data => {
-      if (addBalance && data) {
-        addBalance(address, data?.accountByKey?.balance || {});
-      }
-    },
+    onCompleted: useCallback(
+      (data: IBalanceQueryResult) => {
+        if (addBalance && data) {
+          addBalance(address, data?.accountByKey?.balance || {});
+        }
+      },
+      [addBalance, address],
+    ),
   });
 
-  const onAccountChange = async (wallet: {publicKey: string; accountId: number}) => {
-    try {
-      const walletId = await fetchWalletID({variables: {publicKey: wallet.publicKey}});
-      await storeSession({
-        address: wallet.publicKey,
-        id: +walletId?.data?.idByPublicKey?.id || -1,
-        ledger: false,
-        ledgerAccount: 0,
-        mnemonic: true,
-        accountNumber: wallet.accountId,
-      });
-      await updateWallet({
-        address: wallet.publicKey,
-        id: +walletId?.data?.idByPublicKey?.id || -1,
-        ledger: false,
-        ledgerAccount: 0,
-        mnemonic: true,
-        accountNumber: wallet.accountId,
-      });
-      await refetchBalance(wallet.publicKey);
-    } catch (error) {
-      await storeSession({
-        address: wallet.publicKey,
-        id: -1,
-        ledger: false,
-        ledgerAccount: 0,
-        mnemonic: true,
-        accountNumber: wallet.accountId,
-      });
-      await updateWallet({
-        address: wallet.publicKey,
-        id: -1,
-        ledger: false,
-        ledgerAccount: 0,
-        mnemonic: true,
-        accountNumber: wallet.accountId,
-      });
-      await refetchBalance(wallet.publicKey);
-    } finally {
-      navigate('/overview');
-    }
-  };
-  /**
-   * If balance update is required (shouldBalanceUpdate) refetch it
-   */
-  const refetchBalance = async (newAddress?: string) => {
-    if (shouldBalanceUpdate) {
-      await balanceRefetch({publicKey: newAddress || address});
-      if (setShouldBalanceUpdate) {
-        setShouldBalanceUpdate(false);
+  const refetchBalance = useCallback(
+    async (newAddress?: string) => {
+      if (shouldBalanceUpdate) {
+        await balanceRefetch({publicKey: newAddress || address});
+        if (setShouldBalanceUpdate) {
+          setShouldBalanceUpdate(false);
+        }
       }
-    }
-  };
+    },
+    [shouldBalanceUpdate, balanceRefetch, address, setShouldBalanceUpdate],
+  );
+
+  const handleAccountChange = useCallback(
+    async (selectedWallet: {publicKey: string; accountId: number}) => {
+      try {
+        const walletId = await fetchWalletID({variables: {publicKey: selectedWallet.publicKey}});
+        await storeSession({
+          address: selectedWallet.publicKey,
+          id: +walletId?.data?.idByPublicKey?.id || -1,
+          ledger: false,
+          ledgerAccount: 0,
+          mnemonic: true,
+          accountNumber: selectedWallet.accountId,
+        });
+        await updateWallet({
+          address: selectedWallet.publicKey,
+          id: +walletId?.data?.idByPublicKey?.id || -1,
+          ledger: false,
+          ledgerAccount: 0,
+          mnemonic: true,
+          accountNumber: selectedWallet.accountId,
+        });
+        await refetchBalance(selectedWallet.publicKey);
+      } catch {
+        await storeSession({
+          address: selectedWallet.publicKey,
+          id: -1,
+          ledger: false,
+          ledgerAccount: 0,
+          mnemonic: true,
+          accountNumber: selectedWallet.accountId,
+        });
+        await updateWallet({
+          address: selectedWallet.publicKey,
+          id: -1,
+          ledger: false,
+          ledgerAccount: 0,
+          mnemonic: true,
+          accountNumber: selectedWallet.accountId,
+        });
+        await refetchBalance(selectedWallet.publicKey);
+      } finally {
+        navigate('/overview');
+      }
+    },
+    [fetchWalletID, updateWallet, refetchBalance, navigate],
+  );
+
+  const openModal = useCallback(() => setShowModal(true), []);
+  const closeModal = useCallback(() => setShowModal(false), []);
+
+  const networkLabel = useMemo(() => renderNetworkLabel(network?.nodeInfo), [network?.nodeInfo]);
 
   return (
-    <div className="account-selector-container">
-      <div className="flex flex-col items-center gap-2">
-        <div className="flex flex-row items-center gap-2">
-          <div>
-            <Avatar
-              address={address}
-              size={30}
-            />
-          </div>
-          {trimMiddle(address, 18)}
-        </div>
-        <div className="flex flex-row gap-2">
-          {isUsingMnemonic && (
-            <span
-              onClick={() => setShowModal(true)}
-              className="cursor-pointer purple-text-hover"
-            >
-              <Repeat
-                cursor={'pointer'}
-                width={15}
-              />{' '}
-              Change
-            </span>
-          )}
-          {isUsingMnemonic && ' | '}
-          <NetworkSettings
-            network={network}
-            logout={logout}
-            lockSession={lockSession}
-            currentNetwork={
-              <p
-                className="mb-0"
-                style={{fontSize: '14px'}}
-              >
-                {renderNetworkLabel(network?.nodeInfo)} {statusDot}
-              </p>
-            }
-          />
-        </div>
-        <div className="sidebar-footer-network">
-          {renderNetworkLabel(network?.nodeInfo)} {statusDot}
-        </div>
+    <div className="app-settings">
+      <div className="app-settings__identity">
+        <Avatar
+          address={address}
+          size={32}
+        />
+        <span className="app-settings__address">{trimMiddle(address, 18)}</span>
       </div>
+
+      <div className="app-settings__actions">
+        {hasMnemonic && (
+          <span
+            onClick={() => setShowModal(true)}
+            className="cursor-pointer purple-text-hover"
+          >
+            <Repeat
+              cursor={'pointer'}
+              width={15}
+            />
+            Change
+          </span>
+        )}
+
+        {hasMnemonic && (
+          <span
+            className="app-settings__divider"
+            aria-hidden="true"
+          />
+        )}
+
+        <NetworkSettings
+          network={network}
+          logout={logout}
+          lockSession={lockSession}
+          currentNetwork={
+            <div className="app-settings__network">
+              <span className="app-settings__status-dot" />
+              <span>{networkLabel}</span>
+            </div>
+          }
+        />
+      </div>
+
       <ModalContainer
         show={showModal}
-        className="w-100 max-w-1000"
-        close={() => setShowModal(false)}
+        close={closeModal}
       >
-        {' '}
-        <div>
-          <h2 className="text-center">Change account</h2>
+        <div className="app-settings__modal">
+          <h2 id="modal-title">Change Account</h2>
           <hr />
           <MnemonicAccountSelection
             currentAddress={address}
-            onAccountChange={onAccountChange}
+            onAccountChange={handleAccountChange}
             toggleLoader={toggleLoader}
           />
         </div>

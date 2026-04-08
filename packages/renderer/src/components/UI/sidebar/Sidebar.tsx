@@ -10,7 +10,7 @@ import type {INetworkData} from '/@/types';
 import useSecureStorage from '/@/hooks/useSecureStorage';
 import {Menu, Sidebar, MenuItem} from 'react-pro-sidebar';
 import './SidebarToggle';
-import {createRoot} from 'react-dom/client';
+import {createPortal} from 'react-dom';
 import {SidebarToggle} from './SidebarToggle';
 import AppSettings from './AppSettings';
 import {useWallet} from '/@/contexts/WalletContext';
@@ -35,11 +35,6 @@ export const CustomSidebar = ({
 }: IProps) => {
   const [toggled, setToggled] = useState(false);
   const {updateWallet} = useWallet();
-
-  /**
-   * Show private key backup modal
-   */
-
   const {isLedgerEnabled} = useContext<Partial<ILedgerContext>>(LedgerContext);
   const navigate = useNavigate();
   const {clearData} = useSecureStorage();
@@ -48,9 +43,7 @@ export const CustomSidebar = ({
   ) : (
     <span className="red-dot" />
   );
-  /**
-   * Clear session data and go back to splashscreen
-   */
+
   const logout = async () => {
     await clearSession();
     await clearData();
@@ -59,9 +52,6 @@ export const CustomSidebar = ({
     clearSessionData();
   };
 
-  /**
-   * Clear session data and go back to splashscreen
-   */
   const lockSession = async () => {
     await clearSession();
     await updateWallet({});
@@ -69,13 +59,15 @@ export const CustomSidebar = ({
     navigate('/');
   };
 
-  const root = createRoot(document.getElementById('draggable-bar'));
-  isAuthenticated && root.render(<SidebarToggle setToggled={setToggled} />);
-
   const isElectron = navigator.userAgent.toLowerCase().indexOf(' electron/') > -1;
+  const draggableBar =
+    typeof document !== 'undefined' ? document.getElementById('draggable-bar') : null;
 
   return (
     <div>
+      {isAuthenticated &&
+        draggableBar &&
+        createPortal(<SidebarToggle setToggled={setToggled} />, draggableBar)}
       <Sidebar
         toggled={toggled}
         customBreakPoint="1000px"
@@ -86,85 +78,65 @@ export const CustomSidebar = ({
             <Logo />
           </MenuItem>
           <hr />
-          <Link
-            to="/overview"
-            className="sidebar-item selected-item"
+          <MenuItem
+            component={<Link to="/overview" />}
+            className={`sidebar-item sidebar-item-container ${isRouteActiveClass('overview')}`}
           >
-            <MenuItem className={'sidebar-item-container ' + isRouteActiveClass('overview')}>
-              {' '}
-              <span>
-                <Cpu /> Overview
-              </span>
-            </MenuItem>
-          </Link>
-          <Link
-            to="/send-tx"
-            className="sidebar-item"
+            <span>
+              <Cpu /> Overview
+            </span>
+          </MenuItem>
+          <MenuItem
+            component={<Link to="/send-tx" />}
+            className={`sidebar-item sidebar-item-container ${isRouteActiveClass('send-tx')}`}
           >
-            <MenuItem className={'sidebar-item-container ' + isRouteActiveClass('send-tx')}>
-              {' '}
-              <span>
-                <LogIn /> Send TX
-              </span>
-            </MenuItem>
-          </Link>
-          <Link
-            to="/stake"
-            className="sidebar-item"
+            <span>
+              <LogIn /> Send TX
+            </span>
+          </MenuItem>
+          <MenuItem
+            component={<Link to="/stake" />}
+            className={`sidebar-item sidebar-item-container ${isRouteActiveClass('stake')}`}
           >
-            <MenuItem className={'sidebar-item-container ' + isRouteActiveClass('stake')}>
-              {' '}
-              <span>
-                <TrendingUp /> Staking Hub
-              </span>
-            </MenuItem>
-          </Link>
+            <span>
+              <TrendingUp /> Staking Hub
+            </span>
+          </MenuItem>
 
           {!isLedgerEnabled && (
-            <Link
-              to="/sign-message"
-              className="sidebar-item"
+            <MenuItem
+              component={<Link to="/sign-message" />}
+              className={`sidebar-item sidebar-item-container ${isRouteActiveClass('sign-message')}`}
             >
-              <MenuItem className={'sidebar-item-container ' + isRouteActiveClass('sign-message')}>
-                {' '}
-                <span>
-                  <Edit3 /> Sign message
-                </span>
-              </MenuItem>
-            </Link>
-          )}
-          <Link
-            to="/verify-message"
-            className="sidebar-item"
-          >
-            <MenuItem className={'sidebar-item-container ' + isRouteActiveClass('verify-message')}>
-              {' '}
               <span>
-                <Check /> Verify message
+                <Edit3 /> Sign message
               </span>
             </MenuItem>
-          </Link>
+          )}
+          <MenuItem
+            component={<Link to="/verify-message" />}
+            className={`sidebar-item sidebar-item-container ${isRouteActiveClass('verify-message')}`}
+          >
+            <span>
+              <Check /> Verify message
+            </span>
+          </MenuItem>
 
           {isElectron ? (
-            <Link
-              to="/zkapps"
-              className={`sidebar-item ${!isElectron ? 'disabled-sidebar-item' : ''}}`}
+            <MenuItem
+              component={<Link to="/zkapps" />}
+              className={`sidebar-item sidebar-item-container ${isRouteActiveClass('zkapps')}`}
             >
-              <MenuItem
-                className={`${'sidebar-item-container ' + isRouteActiveClass('zkapps')}`}
-                disabled
+              <span>
+                <Code /> Zkapps
+              </span>
+              <Badge
+                bg="secondary"
+                className="beta-tag"
               >
-                <span>
-                  <Code /> Zkapps
-                </span>
-                <Badge
-                  bg="secondary"
-                  className="beta-tag"
-                >
-                  Beta
-                </Badge>
-              </MenuItem>
-            </Link>
+                Beta
+              </Badge>
+            </MenuItem>
           ) : (
             <MenuItem
               className={`sidebar-item-container ${!isElectron ? 'disabled-sidebar-item' : ''}`}
@@ -193,7 +165,6 @@ export const CustomSidebar = ({
               logout={logout}
               network={network}
               statusDot={statusDot}
-              isUsingMnemonic={mnemonic}
             />
           </div>
         </div>
