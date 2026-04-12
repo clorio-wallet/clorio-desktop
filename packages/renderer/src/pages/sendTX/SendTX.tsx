@@ -1,4 +1,4 @@
-import {useState, useEffect, useContext} from 'react';
+import {useState, useEffect, useContext, useRef} from 'react';
 import {useQuery, useMutation, useLazyQuery} from '@apollo/client';
 import {useNavigate} from 'react-router-dom';
 import {toast} from 'react-toastify';
@@ -9,7 +9,6 @@ import {
   ModalContainer,
   BroadcastTransaction,
 } from '/@/components/UI/modals';
-import Hoc from '/@/components/UI/Hoc';
 import {
   createAndSignLedgerTransaction,
   createLedgerPaymentInputFromPayload,
@@ -39,13 +38,13 @@ import {
 import type {IFeeQuery, IWalletData, ITransactionData, IKeypair} from '/@/types';
 import type {IBalanceContext} from '/@/contexts/balance/BalanceTypes';
 import {BalanceContext} from '/@/contexts/balance/BalanceContext';
-import Stepper from '/@/components/UI/stepper/Stepper';
 import TransactionAuthentication from '/@/components/transactionAuthentication/TransactionAuthentication';
 import {signTransaction} from '/@/tools/utils';
 import {IBalanceQueryResult} from '/@/components/balance/BalanceTypes';
-import {useRecoilState, useRecoilValue} from 'recoil';
+import {useRecoilValue} from 'recoil';
 import {deeplinkState, walletState} from '/@/store';
 import {DeeplinkType} from '/@/hooks/useDeeplinkHandler';
+import SendTXLayout from './SendTXLayout';
 
 interface IProps {
   sessionData: IWalletData;
@@ -54,6 +53,7 @@ interface IProps {
 function SendTX(props: IProps) {
   const navigate = useNavigate();
   const numberOfSteps = Object.values(SendTXPageSteps).filter(val => !isNaN(+val)).length;
+
   const [privateKey, setPrivateKey] = useState<string>('');
   const [key, setKeypair] = useState({publicKey: '', privateKey: ''});
   const [waitingNonce, setWaitingNonce] = useState<boolean>(false);
@@ -66,8 +66,9 @@ function SendTX(props: IProps) {
   const [transactionData, setTransactionData] = useState<ITransactionData>(initialTransactionData);
   const [ledgerTransactionData, setLedgerTransactionData] = useState<string>('');
   const [storedPassphrase, setStoredPassphrase] = useState('');
+  const previousStepRef = useRef(step);
+
   const {getBalance, setShouldBalanceUpdate} = useContext<Partial<IBalanceContext>>(BalanceContext);
-  // const {wallet} = useWallet();
   const wallet = useRecoilValue(walletState);
   const senderAddress = wallet.address;
   const balance = getBalance && getBalance(wallet.address);
@@ -82,21 +83,24 @@ function SendTX(props: IProps) {
     skip: !senderAddress,
     fetchPolicy: 'network-only',
   });
+
   const [fetchBalance] = useLazyQuery<IBalanceQueryResult>(GET_BALANCE);
-  useEffect(() => {
-    setStoredPassphrase(getPassphraseFlag());
-  }, []);
+
+  const deeplinkData = useRecoilValue(deeplinkState);
+
   const feeQuery = useQuery<IFeeQuery>(GET_FEE, {
     onCompleted: data => {
-      if (data?.estimatedFee?.txFees?.average) {
-        setTransactionData({
-          ...transactionData,
-          fee: toNanoMINA(data.estimatedFee.txFees.average),
-        });
+      const avgFee = data?.estimatedFee?.txFees?.average;
+      if (avgFee !== undefined) {
+        setTransactionData(prev => ({
+          ...prev,
+          fee: toNanoMINA(avgFee),
+        }));
       }
     },
     onError: () => {},
   });
+
   const [broadcastTransaction, broadcastResult] = useMutation(BROADCAST_TRANSACTION, {
     onError: error => {
       setTimeout(() => {
@@ -106,51 +110,39 @@ function SendTX(props: IProps) {
     },
   });
 
-  const deeplinkData = useRecoilValue(deeplinkState);
+  useEffect(() => {
+    setStoredPassphrase(getPassphraseFlag());
+  }, []);
 
   useEffect(() => {
-    if (deeplinkData.type) {
-      const {data, type} = deeplinkData;
-      if (type === DeeplinkType.SEND_TX && !!data) {
-        setTransactionData({
-          ...transactionData,
-          amount: toNanoMINA(data.amount),
-          fee: toMINA(data.fee),
-          receiverAddress: data.to,
-          nonce: nonceData?.accountByKey.usableNonce,
-          memo: data.memo || '',
-        });
-      }
+    if (deeplinkData.type === DeeplinkType.SEND_TX && deeplinkData.data) {
+      const {data} = deeplinkData;
+      setTransactionData(prev => ({
+        ...prev,
+        amount: toNanoMINA(data.amount || 0),
+        fee: toMINA(data.fee || 0),
+        receiverAddress: data.to || '',
+        nonce: nonceData?.accountByKey.usableNonce,
+        memo: data.memo || '',
+      }));
     }
-  }, [deeplinkData]);
+  }, [deeplinkData, nonceData]);
 
-  /**
-   * Listen for ledger action
-   */
   useEffect(() => {
-    if (isLedgerEnabled && !ledgerTransactionData) {
-      if (step === SendTXPageSteps.PRIVATE_KEY) {
-        const transactionListener = sendLedgerTransaction();
-        // To be checked with ledger tests
-        // @ts-ignore
-        return transactionListener.unsubscribe;
-      }
+    if (isLedgerEnabled && !ledgerTransactionData && step === SendTXPageSteps.PRIVATE_KEY) {
+      const transactionListener = sendLedgerTransaction();
+      return transactionListener.unsubscribe;
     }
     if (isLedgerEnabled && step === SendTXPageSteps.BROADCAST) {
-      setTimeout(() => {
-        broadcastLedgerTransaction();
-      }, 2000);
+      setTimeout(broadcastLedgerTransaction, 2000);
     }
-  }, [ledgerTransactionData, step]);
+  }, [ledgerTransactionData, step, isLedgerEnabled]);
 
-  /**
-   * If there was a problem fetching the nonce, retry to fetch it
-   */
   useEffect(() => {
     if (!nonceLoading && nonceError) {
       nonceRefetch();
     }
-  }, [nonceLoading, nonceError]);
+  }, [nonceLoading, nonceError, nonceRefetch]);
 
   useEffect(() => {
     if (waitingNonce && !nonceLoading) {
@@ -159,10 +151,6 @@ function SendTX(props: IProps) {
     }
   }, [waitingNonce, nonceLoading]);
 
-  /**
-   * If address is not stored inside component state, fetch it and save it.
-   * If the transaction has been broadcasted successfully return to initial page state
-   */
   useEffect(() => {
     if (showModal && broadcastResult?.data && sendTransactionFlag) {
       clearState(false);
@@ -178,18 +166,16 @@ function SendTX(props: IProps) {
     }
   });
 
-  /**
-   * Clean component state on dismount
-   */
   useEffect(() => {
     return () => {
       setPrivateKey('');
     };
   }, []);
 
-  /**
-   * Ledger data arrived, broadcast the transaction
-   */
+  useEffect(() => {
+    previousStepRef.current = step;
+  }, [step]);
+
   const broadcastLedgerTransaction = () => {
     try {
       if (ledgerTransactionData) {
@@ -206,15 +192,11 @@ function SendTX(props: IProps) {
         });
         setSendTransactionFlag(true);
       }
-    } catch (e) {
+    } catch {
       toast.error('There was an error broadcasting delegation');
     }
   };
 
-  /**
-   * Check if nonce is available, if not ask the user for a custom nonce.
-   * After the nonce is set, proceed with transaction data verification and Passphrase/Private key verification
-   */
   const openConfirmationModal = async () => {
     if (nonceLoading) {
       setWaitingNonce(true);
@@ -235,13 +217,10 @@ function SendTX(props: IProps) {
         setShowModal('');
       }
     } catch (e) {
-      toast.error(e.message);
+      toast.error((e as Error).message);
     }
   };
 
-  /**
-   *  Check if Passphrase/Private key is not empty
-   */
   const confirmPrivateKey = async (passphrase?: string) => {
     try {
       if (!privateKey && !passphrase) {
@@ -252,40 +231,27 @@ function SendTX(props: IProps) {
         passphrase?.trim() || privateKey.trim(),
         wallet.accountNumber,
       );
-      setTransactionData({
-        ...transactionData,
-        senderAddress: derivedData.publicKey || '',
-      });
+      setTransactionData(prev => ({...prev, senderAddress: derivedData.publicKey || ''}));
       setKeypair(derivedData);
       setStep(SendTXPageSteps.CONFIRMATION);
-    } catch (e) {
+    } catch {
       toast.error('Please check your Passphrase or Private key');
     }
   };
 
-  /**
-   * Get back to form
-   */
   const stepBackwards = () => {
     if (step === SendTXPageSteps.CONFIRMATION && storedPassphrase) {
-      setStep(step - 2);
+      setStep(prev => prev - 2);
     } else {
-      setStep(step - 1);
+      setStep(prev => prev - 1);
     }
     setPrivateKey('');
   };
 
-  /**
-   * If nonce is available from the back-end return it, otherwise return the custom nonce
-   * @returns number Nonce
-   */
   const getNonce = () => {
     return nonceData && checkNonce(nonceData) ? nonceData?.accountByKey.usableNonce : customNonce;
   };
 
-  /**
-   * Clear component state
-   */
   const clearState = (redirect = true) => {
     if (redirect) {
       setStep(SendTXPageSteps.FORM);
@@ -297,24 +263,18 @@ function SendTX(props: IProps) {
     setSendTransactionFlag(false);
   };
 
-  /**
-   * Close nonce modal
-   */
   const closeNonceModal = () => {
     setShowModal('');
     setCustomNonce(0);
   };
 
-  /**
-   * Sign transaction with Ledger
-   */
   const sendLedgerTransaction = async () => {
     try {
       checkMemoLength(transactionData);
       await isMinaAppOpen();
       const senderAccount = props.sessionData?.ledgerAccount || 0;
       const actualNonce = getNonce();
-      setTransactionData({...transactionData, nonce: actualNonce});
+      setTransactionData(prev => ({...prev, nonce: actualNonce}));
       const signature = await createAndSignLedgerTransaction({
         senderAccount,
         senderAddress,
@@ -324,14 +284,11 @@ function SendTX(props: IProps) {
       setLedgerTransactionData(signature.signature);
       setStep(SendTXPageSteps.CONFIRMATION);
     } catch (e) {
-      toast.error(e.message || 'An error occurred while loading hardware wallet');
+      toast.error((e as Error).message || 'An error occurred while loading hardware wallet');
       setLedgerError(true);
     }
   };
 
-  /**
-   * Broadcast transaction without Ledger
-   */
   const sendTransaction = async () => {
     setShowModal(ModalStates.BROADCASTING);
     setStep(SendTXPageSteps.BROADCAST);
@@ -344,10 +301,7 @@ function SendTX(props: IProps) {
         key.privateKey.trim() || privateKey.trim(),
         wallet.accountNumber,
       );
-      setTransactionData({
-        ...transactionData,
-        senderAddress: derivedData.publicKey || '',
-      });
+      setTransactionData(prev => ({...prev, senderAddress: derivedData.publicKey || ''}));
       const keypair = {
         privateKey: derivedData?.privateKey,
         publicKey: derivedData?.publicKey,
@@ -370,7 +324,7 @@ function SendTX(props: IProps) {
         setPrivateKey('');
         setSendTransactionFlag(true);
       }
-    } catch (e) {
+    } catch {
       setShowModal('');
       toast.error('Check if the receiver address and/or the passphrase/private key are right');
       stepBackwards();
@@ -383,70 +337,80 @@ function SendTX(props: IProps) {
     sendLedgerTransaction();
   };
 
-  return (
-    <Hoc className="glass-card p-4 mb-4">
-      <Spinner
-        show={showLoader}
-        className="spinner-container center full-width"
-      >
-        <div>
-          <div className="w-100">
-            <div className="flex flex-col flex-vertical-center">
-              <h1>New Transaction</h1>
-              <Stepper
-                max={numberOfSteps}
-                step={step + 1}
-              />
-            </div>
-          </div>
+  const stepDirection = step >= previousStepRef.current ? 'forward' : 'backward';
 
-          <div className="animate__animated animate__fadeIn">
-            {step === SendTXPageSteps.FORM ? (
-              <TransactionForm
-                averageFee={feeQuery?.data?.estimatedFee?.txFees?.average || 0}
-                fastFee={feeQuery?.data?.estimatedFee?.txFees?.fast || 0}
-                nextStep={openConfirmationModal}
-                transactionData={transactionData}
-                setData={setTransactionData}
-                balance={balance}
+  const renderStepContent = () => {
+    switch (step) {
+      case SendTXPageSteps.FORM:
+        return (
+          <TransactionForm
+            averageFee={feeQuery?.data?.estimatedFee?.txFees?.average || 0}
+            fastFee={feeQuery?.data?.estimatedFee?.txFees?.fast || 0}
+            nextStep={openConfirmationModal}
+            transactionData={transactionData}
+            setData={setTransactionData}
+            balance={balance}
+          />
+        );
+      case SendTXPageSteps.PRIVATE_KEY:
+        return (
+          <TransactionAuthentication
+            isLedgerEnabled={isLedgerEnabled}
+            setPrivateKey={setPrivateKey}
+            stepBackwards={stepBackwards}
+            confirmPrivateKey={confirmPrivateKey}
+            ledgerError={ledgerError}
+            stepBackward={stepBackwards}
+            retryLedgerTransaction={retryLedgerTransaction}
+            storedPassphrase={!!storedPassphrase}
+          />
+        );
+      case SendTXPageSteps.CONFIRMATION:
+        return (
+          <ConfirmTransaction
+            walletAddress={senderAddress}
+            transactionData={transactionData}
+            ledgerTransactionData={ledgerTransactionData}
+            isLedgerEnabled={isLedgerEnabled}
+            stepBackward={stepBackwards}
+            sendTransaction={sendTransaction}
+          />
+        );
+      case SendTXPageSteps.BROADCAST:
+        return <BroadcastTransaction />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <SendTXLayout step={{total: numberOfSteps, current: step + 1}}>
+      <div className="full-width">
+        <Spinner
+          show={showLoader}
+          className="spinner-container center full-width"
+        >
+          <>
+            <div
+              key={step}
+              className={`sendtx-content sendtx-content--${stepDirection}`}
+            >
+              {renderStepContent()}
+            </div>
+            <ModalContainer
+              show={showModal === ModalStates.NONCE}
+              close={closeNonceModal}
+            >
+              <CustomNonce
+                proceedHandler={openConfirmationModal}
+                setCustomNonce={setCustomNonce}
+                nonce={customNonce}
               />
-            ) : step === SendTXPageSteps.PRIVATE_KEY ? (
-              <TransactionAuthentication
-                isLedgerEnabled={isLedgerEnabled}
-                setPrivateKey={setPrivateKey}
-                stepBackwards={stepBackwards}
-                confirmPrivateKey={confirmPrivateKey}
-                ledgerError={ledgerError}
-                stepBackward={stepBackwards}
-                retryLedgerTransaction={retryLedgerTransaction}
-                storedPassphrase={!!storedPassphrase}
-              />
-            ) : step === SendTXPageSteps.CONFIRMATION ? (
-              <ConfirmTransaction
-                walletAddress={senderAddress}
-                transactionData={transactionData}
-                ledgerTransactionData={ledgerTransactionData}
-                isLedgerEnabled={isLedgerEnabled}
-                stepBackward={stepBackwards}
-                sendTransaction={sendTransaction}
-              />
-            ) : (
-              <BroadcastTransaction />
-            )}
-          </div>
-          <ModalContainer
-            show={showModal === ModalStates.NONCE}
-            close={closeNonceModal}
-          >
-            <CustomNonce
-              proceedHandler={openConfirmationModal}
-              setCustomNonce={setCustomNonce}
-              nonce={customNonce}
-            />
-          </ModalContainer>
-        </div>
-      </Spinner>
-    </Hoc>
+            </ModalContainer>
+          </>
+        </Spinner>
+      </div>
+    </SendTXLayout>
   );
 }
 
