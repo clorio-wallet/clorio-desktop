@@ -1,22 +1,22 @@
-import {useState} from 'react';
+import {useMemo} from 'react';
+import {useQuery} from '@apollo/client';
+import ReactTooltip from 'react-tooltip';
 import Button from '../../UI/Button';
 import StakeTableRow from '../stakeTableRow/StakeTableRow';
-import {Row, Col, Table} from 'react-bootstrap';
 import StakeStatus from '../StakeStatus';
-import ReactTooltip from 'react-tooltip';
 import type {IValidatorData} from '../stakeTableRow/ValidatorDataTypes';
 import StakeTableError from './StakeTableError';
 import Spinner from '../../UI/Spinner';
 import Pagination from '../../UI/pagination/Pagination';
 import {GET_VALIDATORS_TOTAL} from '../../../graphql/query';
 import {getTotalPages} from '../../../tools';
-import {useQuery} from '@apollo/client';
 import EpochBar from '../../UI/epochBar/EpochBar';
 import {useNetworkSettingsContext} from '/@/contexts/NetworkContext';
+import './StakeTable.scss';
 
 interface IProps {
   error: any;
-  validators: IValidatorData[];
+  validators?: IValidatorData[];
   toggleModal: (element: IValidatorData) => void;
   openCustomDelegateModal: () => void;
   currentDelegate: string;
@@ -41,123 +41,120 @@ const StakeTable = ({
   page,
   address,
 }: IProps) => {
-  const [searchBox] = useState<string>('');
   const {data: validatorsTotalData} = useQuery(GET_VALIDATORS_TOTAL);
+  const {settings} = useNetworkSettingsContext();
 
+  const validatorsDisabled = settings?.hideValidators;
+  const epochDisabled = !settings?.epochUrl;
   const totalPages = getTotalPages(
     validatorsTotalData?.validators_aggregate?.aggregate?.count || 0,
     false,
   );
-  /**
-   * Store search text inside component state (temporarily disabled, needs backend search query)
-   * @param search string Search text
-   */
-  // const searchBoxHandler = (search: string) => {
-  //   setSearchBox(search.toLowerCase());
-  // };
 
-  const {settings} = useNetworkSettingsContext();
-  const validatorsDisabled = settings?.hideValidators;
-  const epochDisabled = !settings?.epochUrl;
+  const filteredValidators = useMemo(() => validators || [], [validators]);
 
-  const tableBody = () => {
-    if (validators) {
-      const filteredValidators = validators.filter(el =>
-        el?.name?.toLowerCase().includes(searchBox),
-      );
-      return (
-        <tbody>
-          {filteredValidators.map((el, index: number) => {
-            const isDelegating = el.publicKey === currentDelegate;
-            return (
-              <StakeTableRow
-                key={index}
-                element={el}
-                index={index}
-                toggleModal={toggleModal}
-                isDelegating={isDelegating}
-                loading={delegateLoading}
-              />
-            );
-          })}
-        </tbody>
-      );
-    }
-    return <tbody />;
-  };
+  const tableRows = filteredValidators.map((validator, index) => (
+    <StakeTableRow
+      key={`validator-row-${validator.publicKey}-${index}`}
+      element={validator}
+      index={index}
+      toggleModal={toggleModal}
+      isDelegating={validator.publicKey === currentDelegate}
+      loading={delegateLoading}
+    />
+  ));
+
+  const mobileCards = filteredValidators.map((validator, index) => (
+    <StakeTableRow
+      key={`validator-card-${validator.publicKey}-${index}`}
+      element={validator}
+      index={index}
+      toggleModal={toggleModal}
+      isDelegating={validator.publicKey === currentDelegate}
+      loading={delegateLoading}
+      mode="card"
+    />
+  ));
 
   if (error) {
     return <StakeTableError />;
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <Row className="row-gap-4">
-        <Col>
-          <div className="glass-card p-4 center-content flex-col-left h-95 flex flex-vertical-center stake-info-left">
-            <div className="w-100">
-              <StakeStatus
-                currentDelegate={currentDelegate}
-                currentDelegateName={currentDelegateName}
-                address={address}
-              />
-            </div>
-          </div>
-        </Col>
-        <Col>
-          <div
-            className={`glass-card p-4 center-content flex-col-left stake-info-right ${
-              epochDisabled ? 'disabled-glass-card' : ''
-            }`}
-          >
-            <div className="w-100 mt-2">
-              <EpochBar />
-            </div>
-          </div>
-        </Col>
-      </Row>
-      <div className={`glass-card p-4 py-50 ${validatorsDisabled ? 'disabled-glass-card' : ''}`}>
-        <div>
-          <Row>
-            <Col className="mt-0">
-              <h2>Delegates</h2>
-            </Col>
-            <Col
-              md={3}
-              lg={4}
-              xl={3}
-              className="align-end small-screen-align-left"
-            >
-              <Button
-                className="link-button custom-delegate-button purple-text"
-                text="Custom delegation"
-                onClick={openCustomDelegateModal}
-              />
-            </Col>
-          </Row>
-          {validatorsDisabled ? (
-            <div>The validators list is not available for this network</div>
-          ) : (
-            <>
-              <Spinner
-                className={'full-width'}
-                show={loading}
-              >
-                <div id="transaction-table">
-                  <Table id="rwd-table-large">{tableBody()}</Table>
-                  &nbsp;
-                  <ReactTooltip multiline={true} />
-                </div>
-              </Spinner>
-              <Pagination
-                page={page}
-                setOffset={setOffset}
-                total={totalPages}
-              />
-            </>
-          )}
+    <div className="stake-table-shell">
+      <section className="stake-overview-grid">
+        <div className="glass-card stake-overview-card">
+          <StakeStatus
+            currentDelegate={currentDelegate}
+            currentDelegateName={currentDelegateName}
+            address={address}
+          />
         </div>
-      </div>
+        <div className={`glass-card stake-overview-card ${epochDisabled ? 'disabled-glass-card' : ''}`}>
+          <EpochBar />
+        </div>
+      </section>
+
+      <section className={`glass-card stake-table-panel ${validatorsDisabled ? 'disabled-glass-card' : ''}`}>
+        <div className="stake-table-panel__header">
+          <div className="stake-table-panel__copy">
+            <span className="stake-table-panel__eyebrow">Delegation marketplace</span>
+            <h2 className="stake-table-panel__title">Delegates</h2>
+            <p className="stake-table-panel__subtitle">
+              Compare validator fees and stake distribution before delegating.
+            </p>
+          </div>
+          <Button
+            className="stake-table-panel__cta"
+            text="Custom delegation"
+            onClick={openCustomDelegateModal}
+            style="quiet"
+
+            size="sm"
+          />
+        </div>
+
+        {validatorsDisabled ? (
+          <div className="stake-table-panel__empty">
+            The validators list is not available for this network.
+          </div>
+        ) : (
+          <Spinner
+            className="full-width"
+            show={loading}
+          >
+            <ReactTooltip multiline={true} />
+
+            <div className="stake-table-wrapper">
+              <table className="stake-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Validator</th>
+                    <th scope="col">Fee</th>
+                    <th scope="col">Staked</th>
+                    <th scope="col">Info</th>
+                    <th
+                      scope="col"
+                      className="stake-table__th-action"
+                    >
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>{tableRows}</tbody>
+              </table>
+            </div>
+
+            <div className="stake-card-list">{mobileCards}</div>
+
+            <Pagination
+              page={page}
+              setOffset={setOffset}
+              total={totalPages}
+            />
+          </Spinner>
+        )}
+      </section>
     </div>
   );
 };

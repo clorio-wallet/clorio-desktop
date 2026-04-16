@@ -1,9 +1,6 @@
-import Truncate from 'react-truncate-inside/es';
 import Avatar from '../../../tools/avatar/avatar';
 import Button from '../../UI/Button';
-import StakeTableValue from './StakeTableValue';
 import type {IValidatorData} from './ValidatorDataTypes';
-import {useEffect, useRef, useState} from 'react';
 
 interface IProps {
   index: number;
@@ -11,105 +8,159 @@ interface IProps {
   toggleModal: (element: IValidatorData) => void;
   isDelegating?: boolean;
   loading?: boolean;
+  mode?: 'table' | 'card';
 }
 
-const StakeTableRow = ({element, index, toggleModal, isDelegating, loading}: IProps) => {
-  let supportTooltip = '';
-  let boostedClassName = '';
-  if (+element.priority === 1) {
-    supportTooltip =
-      '~Clorio is built by Carbonara. <br>Earn rewards and support Clorio <br>by delegating to Carbonara ❤️';
-    boostedClassName = 'is-boosted';
-  }
-  const [width, setWidth] = useState(0);
-  const textRef = useRef<HTMLDivElement | null>(null);
+const BOOSTED_TOOLTIP =
+  '~Clorio is built by Carbonara. <br>Earn rewards and support Clorio <br>by delegating to Carbonara ❤️';
 
-  useEffect(() => {
-    if (textRef.current) {
-      const observer = new ResizeObserver(entries => {
-        setWidth(entries[0].contentRect.width - 30);
-      });
+const formatStakedAmount = (stakedSum?: string) => `${parseInt(stakedSum || '0').toLocaleString()} MINA`;
 
-      observer.observe(textRef.current);
+const StakeTableRow = ({
+  element,
+  toggleModal,
+  isDelegating,
+  loading,
+  mode = 'table',
+}: IProps) => {
+  const isBoosted = +element.priority === 1;
+  const supportTooltip = isBoosted ? BOOSTED_TOOLTIP : '';
 
-      return () => {
-        if (textRef.current) {
-          observer.unobserve(textRef.current);
-        }
-      };
-    }
-  }, []);
+  const buttonText = isDelegating ? 'Delegating' : 'Delegate';
+  const buttonStyle = isDelegating ? 'success' : 'primary';
+  const buttonVariant = isDelegating ? undefined : 'glow';
+  const buttonHandler = isDelegating ? undefined : () => toggleModal(element);
+  const isButtonLoading = !!loading && !!isDelegating;
 
-  const delegateButton = () => {
-    const buttonHandler = !isDelegating ? () => toggleModal(element) : () => null;
-    const buttonColor = loading
-      ? 'whiteButton__fullMono no-padding button-small-padding'
-      : isDelegating
-      ? 'lightGreenButton__fullMono yellowButton__fullMono button-small-padding'
-      : '';
-    const text = isDelegating ? 'Delegating' : 'Delegate';
+  const validatorName = element.name || 'Unnamed validator';
+  const websiteLabel = element.website ? 'Website' : 'Unavailable';
+  const websiteHref = element.website ? `${element.website}?ref=clorio` : '';
+
+  const validatorIdentity = (
+    <div className="stake-validator">
+      <div className="stake-validator__avatar">
+        {element.image ? (
+          <img
+            className="stake-validator__image"
+            src={element.image}
+            alt=""
+          />
+        ) : (
+          <Avatar
+            className="stake-validator__image"
+            address={element.publicKey}
+            size="38"
+          />
+        )}
+      </div>
+      <div className="stake-validator__copy">
+        <div className="stake-validator__title-row">
+          <span
+            className="stake-validator__name"
+            title={validatorName}
+          >
+            {validatorName}
+          </span>
+          {isBoosted && (
+            <span
+              className="stake-validator__badge"
+              data-tip={supportTooltip}
+            >
+              Featured
+            </span>
+          )}
+        </div>
+        <span
+          className="stake-validator__address"
+          title={element.publicKey}
+        >
+          {element.publicKey}
+        </span>
+      </div>
+    </div>
+  );
+
+  const actionButton = (
+    <Button
+      className="stake-validator__action"
+      text={buttonText}
+      style={buttonStyle}
+      variant={buttonVariant}
+      loading={isButtonLoading}
+      disableAnimation={!!isDelegating}
+      disableHoverStyle={!!isDelegating}
+      onClick={buttonHandler}
+      disabled={!!isDelegating}
+    />
+  );
+
+  if (mode === 'card') {
     return (
-      <Button
-        className={`${buttonColor}`}
-        text={text}
-        style={!buttonColor ? 'primary' : undefined}
-        loading={loading}
-        disableAnimation={isDelegating}
-        onClick={buttonHandler}
-      />
+      <article
+        className={`stake-card${isBoosted ? ' stake-card--boosted' : ''}`}
+        data-tip={supportTooltip}
+      >
+        <div className="stake-card__header">
+          {validatorIdentity}
+          {actionButton}
+        </div>
+
+        <div className="stake-card__grid">
+          <div className="stake-card__metric">
+            <span className="stake-card__label">Fee</span>
+            <strong className="stake-card__value">{element.fee}%</strong>
+          </div>
+          <div className="stake-card__metric">
+            <span className="stake-card__label">Staked</span>
+            <strong className="stake-card__value">{formatStakedAmount(element.stakedSum)}</strong>
+          </div>
+          <div className="stake-card__metric stake-card__metric--wide">
+            <span className="stake-card__label">Info</span>
+            {element.website ? (
+              <a
+                className="stake-card__link"
+                href={websiteHref}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {websiteLabel}
+              </a>
+            ) : (
+              <span className="stake-card__muted">{websiteLabel}</span>
+            )}
+          </div>
+        </div>
+      </article>
     );
-  };
+  }
 
   return (
     <tr
-      key={index}
-      className={`stake-table-row ${boostedClassName}`}
+      className={`stake-row${isBoosted ? ' stake-row--boosted' : ''}`}
       data-tip={supportTooltip}
     >
-      <StakeTableValue
-        avatar={
-          <div className="walletImageContainer small-image">
-            {element.image ? (
-              <img
-                className="small-walletImage"
-                src={element.image}
-              />
-            ) : (
-              <Avatar
-                className="small-walletImage"
-                address={element.publicKey}
-                size="30"
-              />
-            )}
-          </div>
-        }
-        header="Validator"
-        ref={textRef}
-        text={
-          <Truncate
-            text={element?.name || ''}
-            width={width}
-          />
-        }
-        className="table-element"
-      />
-      <StakeTableValue
-        className="table-element fee-column"
-        header={'Fee'}
-        text={`${element.fee}%`}
-      />
-      <StakeTableValue
-        className="table-element stake-column"
-        header={'Staked'}
-        text={`${parseInt(element?.stakedSum || '0').toLocaleString()} Mina`}
-      />
-      <StakeTableValue
-        className="table-element info-column"
-        header={'info'}
-        text={'Website'}
-        website={element.website}
-      />
-      <td className="table-element stake-table-button">{delegateButton()}</td>
+      <td className="stake-row__cell stake-row__cell--validator">{validatorIdentity}</td>
+      <td className="stake-row__cell">
+        <span className="stake-row__value">{element.fee}%</span>
+      </td>
+      <td className="stake-row__cell">
+        <span className="stake-row__value">{formatStakedAmount(element.stakedSum)}</span>
+      </td>
+      <td className="stake-row__cell">
+        {element.website ? (
+          <a
+            className="stake-row__link"
+            href={websiteHref}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {websiteLabel}
+          </a>
+        ) : (
+          <span className="stake-row__muted">{websiteLabel}</span>
+        )}
+      </td>
+      <td className="stake-row__cell stake-row__cell--action">{actionButton}</td>
     </tr>
   );
 };
