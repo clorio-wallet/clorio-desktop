@@ -6,7 +6,7 @@ import {balanceTooltip} from './util';
 import CustomSkeleton from '../CustomSkeleton';
 import {useElementWidth, useBalanceData} from './BalanceHooks';
 import AddressInfo from './AddressInfo';
-import BalanceItem from './BalanceItem';
+import './Balance.scss';
 
 const Balance = () => {
   const {
@@ -20,139 +20,101 @@ const Balance = () => {
     userBalance,
   } = useBalanceData();
 
-  const {ref: bigTextRef, width: widthBigText} = useElementWidth(150);
-  const {ref: textRef, width: widthSmallText} = useElementWidth(150);
+  const {ref: containerRef, width: containerWidth} = useElementWidth(300);
+
+  const btcValue = userBalanceToSymbolValue({
+    tickerData,
+    tickerLoading,
+    userBalance,
+    symbol: 'BTC',
+    ticker: 'BTCMINA',
+  });
+
+  const usdtValue = userBalanceToSymbolValue({
+    tickerData,
+    tickerLoading,
+    userBalance,
+    symbol: 'USDT',
+    ticker: 'USDTMINA',
+  });
 
   return (
-    <div className="glass-card px-3 py-2">
+    <div className="balance-card glass-card">
       <ReactTooltip multiline={true} />
-      <div
-        className="big-screen"
-        ref={bigTextRef}
+      
+      <div 
+        className="balance-card__inner"
+        ref={containerRef}
       >
-        <div className="flex flex-row justify-start gap-4">
-          <div className="inline-block-element mt-2">
-            <CustomSkeleton
-              show={!!address}
-              altProps={{height: 75, width: 75, circle: true} as any}
-            >
-              <div className="walletImageOutline">
-                <Avatar
-                  address={address}
-                  className="balance-avatar"
-                />
-              </div>
-            </CustomSkeleton>
-          </div>
-          <div className="inline-block-element wallet-data flex gap-2 flex-col">
-            <AddressInfo
-              address={address}
-              width={widthBigText}
-              iconSize={20}
-            />
-            <div className="flex flex-row justify-start">
-              <BalanceItem
-                label="Your balance"
-                loading={balanceLoading}
-                data={balanceData}
-                error={balanceError}
-                value={renderBalance({balanceData, balanceLoading, userBalance})}
-              />
-              <div className="inline-block-element ml-2">
-                <div className="v-div" />
-              </div>
-              <BalanceItem
-                className="ml-2"
-                label="BTC Apx. value"
-                loading={tickerLoading}
-                data={balanceData}
-                error={tickerError}
-                value={userBalanceToSymbolValue({
-                  tickerData,
-                  tickerLoading,
-                  userBalance,
-                  symbol: 'BTC',
-                  ticker: 'BTCMINA',
-                })}
-              />
-              <div className="inline-block-element ml-2">
-                <div className="v-div" />
-              </div>
-              <BalanceItem
-                className="ml-2"
-                label="USDT Apx. value"
-                loading={tickerLoading}
-                data={balanceData}
-                error={tickerError}
-                value={userBalanceToSymbolValue({
-                  tickerData,
-                  tickerLoading,
-                  userBalance,
-                  symbol: 'USDT',
-                  ticker: 'USDTMINA',
-                })}
+        <div className="balance-card__avatar">
+          <CustomSkeleton
+            show={!!address}
+            altProps={{height: 64, width: 64, circle: true} as any}
+          >
+            <div className="balance-card__avatar-ring">
+              <Avatar
+                address={address}
+                size={56}
               />
             </div>
-          </div>
+          </CustomSkeleton>
         </div>
-      </div>
-      <div
-        className="flex flex-col w-full items-center small-screen"
-        ref={textRef}
-      >
-        <div className="flex flex-row justify-start gap-4">
-          <div className="inline-block-element mt-2">
-            <CustomSkeleton
-              show={!!address}
-              altProps={{height: 75, width: 75, circle: true} as any}
-            >
-              <div className="walletImageOutline">
-                <Avatar
-                  address={address}
-                  className="balance-avatar"
-                  size={60}
-                />
+
+        <div className="balance-card__content">
+          <AddressInfo
+            address={address}
+            width={containerWidth > 600 ? 320 : containerWidth > 400 ? 200 : 160}
+            iconSize={14}
+          />
+
+          <div className="balance-card__stats">
+            <div className="balance-stat">
+              <span className="balance-stat__label">Balance</span>
+              <div className="balance-stat__value">
+                <CustomSkeleton
+                  show={(!balanceLoading && !!balanceData) || !!balanceError}
+                  altProps={{height: 24, width: 120}}
+                >
+                  <span 
+                    data-tip={balanceTooltip(balanceData)}
+                    className="animate__animated animate__fadeIn"
+                  >
+                    {balanceError ? 'Not available' : renderBalance({balanceData, balanceLoading, userBalance})}
+                  </span>
+                </CustomSkeleton>
               </div>
-            </CustomSkeleton>
-          </div>
-          <div className="inline-block-element wallet-data flex gap-2 flex-col">
-            <AddressInfo
-              address={address}
-              width={widthSmallText}
-              iconSize={18}
-            />
-          </div>
-        </div>
-        <div>
-          <div className="flex flex-row justify-between px-4 mt-4">
-            <BalanceItem
-              label="Your balance"
-              loading={balanceLoading}
-              data={balanceData}
-              error={balanceError}
-              value={renderBalance({balanceData, balanceLoading, userBalance})}
-              centered
-              headingTag="h6"
-            />
-            <div className="inline-block-element ml-2">
-              <div className="v-div" />
             </div>
-            <div className="inline-block-element ml-2 w-100">
-              <BalanceItem
-                label="BTC Apx. value"
-                loading={tickerLoading}
-                data={balanceData}
-                error={tickerError}
-                value={userBalanceToSymbolValue({
-                  tickerData,
-                  tickerLoading,
-                  userBalance,
-                  symbol: 'BTC',
-                  ticker: 'BTCMINA',
-                })}
-                centered
-                headingTag="h6"
-              />
+
+            <div className="balance-stat-divider" />
+
+            <div className="balance-stat">
+              <span className="balance-stat__label">BTC Value</span>
+              <div className="balance-stat__value">
+                <CustomSkeleton
+                  show={(!tickerLoading && !!tickerData) || !!tickerError}
+                  altProps={{height: 24, width: 80}}
+                >
+                  <span className="animate__animated animate__fadeIn">
+                    {tickerError ? '—' : btcValue}
+                  </span>
+                </CustomSkeleton>
+              </div>
+            </div>
+
+            <div className="balance-stat-divider" />
+
+            <div className="balance-stat">
+              <span className="balance-stat__label">USD Value</span>
+              <div className="balance-stat__value">
+                <CustomSkeleton
+                  show={(!tickerLoading && !!tickerData) || !!tickerError}
+                  altProps={{height: 24, width: 80}}
+                >
+                  <span className="animate__animated animate__fadeIn">
+                    {tickerError ? '—' : usdtValue}
+                  </span>
+                </CustomSkeleton>
+              </div>
             </div>
           </div>
         </div>

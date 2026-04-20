@@ -1,10 +1,9 @@
 import * as React from 'react';
-import {Row, Col} from 'react-bootstrap';
-import Button from '../UI/Button';
 import {Copy} from 'react-feather';
 import CustomSkeleton from '../CustomSkeleton';
 import Truncate from 'react-truncate-inside';
 import {copyToClipboard} from '../../tools';
+import {toast} from 'react-toastify';
 
 interface IAddressInfoProps {
   address: string;
@@ -12,31 +11,34 @@ interface IAddressInfoProps {
   iconSize?: number;
 }
 
-const AddressInfo = ({address, width, iconSize = 20}: IAddressInfoProps) => {
+const AddressInfo = ({address, width, iconSize = 16}: IAddressInfoProps) => {
+  const handleCopy = () => {
+    copyToClipboard(address);
+    toast.success('Address copied to clipboard');
+  };
+
   return (
-    <Row>
-      <Col xs={12}>
-        <div className="flex my-2 items-center justify-start gap-2">
-          <h6 className="secondaryText width-fit">
-            This is your address
-            <Button
-              className="inline-element"
-              icon={<Copy size={iconSize} />}
-              onClick={() => copyToClipboard(address)}
-            />
-          </h6>
+    <div className="address-info">
+      <div className="address-info__header">
+        <span className="address-info__label">Wallet address</span>
+        <button 
+          className="address-info__copy"
+          onClick={handleCopy}
+          aria-label="Copy wallet address"
+        >
+          <Copy size={iconSize} />
+        </button>
+      </div>
+      <CustomSkeleton 
+        show={!!address} 
+        altProps={{height: 20, width: Math.min(width || 300, 400)}}>
+        <div className="address-info__value">
+          <span className="selectable-text">
+            <Truncate text={address} width={width || 300} />
+          </span>
         </div>
-        <div className="flex flex-row justify-start">
-          <CustomSkeleton show={!!address} altProps={{height: 20, width: 300}}>
-            <div className="flex flex-row">
-              <h5 className="selectable-text">
-                <Truncate text={address} width={width || 1000} />
-              </h5>
-            </div>
-          </CustomSkeleton>
-        </div>
-      </Col>
-    </Row>
+      </CustomSkeleton>
+    </div>
   );
 };
 

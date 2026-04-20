@@ -1,5 +1,5 @@
 import {useQuery} from '@apollo/client';
-import {useContext, useEffect, useState} from 'react';
+import {useCallback, useContext, useEffect, useState} from 'react';
 import NewsBanner from '../components/UI/NewsBanner';
 import Hoc from '../components/UI/Hoc';
 import TransactionsTable from '../components/transactionsTable/TransactionsTable';
@@ -72,19 +72,13 @@ const Overview = ({sessionData}: IProps) => {
     pollInterval: DEFAULT_QUERY_REFRESH_INTERVAL,
   });
 
-  /**
-   * Read session data and set the wallet id in the component state
-   */
-  const readWalletData = async () => {
-    const wallet = await readSession();
-    if (wallet && wallet.id !== -1 && wallet.id !== walletId) {
-      setWalletId(wallet.id);
+  const readWalletData = useCallback(async () => {
+    const sessionWallet = await readSession();
+    if (sessionWallet && sessionWallet.id !== -1 && sessionWallet.id !== walletId) {
+      setWalletId(sessionWallet.id);
     }
-  };
+  }, [walletId]);
 
-  /**
-   * Read the wallet id from the session data every 10 seconds until a valid id is retrieved
-   */
   useEffect(() => {
     if (walletId !== -1) return;
     
@@ -100,33 +94,19 @@ const Overview = ({sessionData}: IProps) => {
       const newId = walletIDData.idByPublicKey.id;
       
       if (newId !== null && newId !== id) {
-        updateWalletState(state => ({
-          ...state,
-          id: newId,
-        }));
+        updateWalletState({id: newId});
       } else if (newId === null && id !== -1) {
-        updateWalletState(state => ({
-          ...state,
-          id: -1,
-        }));
+        updateWalletState({id: -1});
       }
     }
   }, [walletIDData, id, updateWalletState]);
 
-  /**
-   * Set query offset param based on selected table page
-   * @param {number} page Page number
-   */
   const changeOffset = (page: number) => {
     setLoading(true);
     const data = (page - 1) * TRANSACTIONS_TABLE_ITEMS_PER_PAGE;
     setOffset(data);
   };
 
-  /**
-   * Restart polling interval
-   * @param refetch force refetch data
-   */
   const refetchData = (refetch = false) => {
     transactionStopPolling();
     mempoolStopPolling();
@@ -149,7 +129,7 @@ const Overview = ({sessionData}: IProps) => {
   const currentBalance = balance?.total ? +balance.total : 0;
 
   return (
-    <Hoc className="main-container">
+    <Hoc className="main-container overview-container">
       <div>
         {lastNews && <NewsBanner {...lastNews} />}
         <TransactionsTable
