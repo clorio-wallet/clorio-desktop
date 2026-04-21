@@ -1,35 +1,25 @@
 import {ReactNode, useEffect, useState} from 'react';
-import {Globe, Zap, ChevronDown, Lock, LogOut, Settings} from 'react-feather';
+import {X, Globe, Zap, ChevronDown} from 'react-feather';
 import {Form} from 'react-bootstrap';
-import {ModalContainer} from '../modals';
-import Button from '../Button';
 import {useNetworkSettingsContext} from '/@/contexts/NetworkContext';
 import {useNavigate} from 'react-router-dom';
-import BackupWallet from '../modals/BackupWallet';
 import {INetworkData} from '/@/types';
 import {getPassphraseFlag} from '/@/tools';
 import {useRecoilState} from 'recoil';
 import {networkState} from '/@/store';
 import {ConnectedZkapps} from './ConnectedZkapps';
 import {NetConfig, sendResponse} from '/@/tools/mina-zkapp-bridge';
-import {isElectron} from '/@/tools/environment';
+import Button from '../Button';
 
-export default function NetworkSettings({
-  currentNetwork,
-  logout,
-  lockSession,
-  network,
-  hideBackup = false,
-}: {
-  network: INetworkData;
+interface OnboardingNetworkSettingsProps {
   currentNetwork: ReactNode;
-  logout?: () => void;
-  lockSession?: () => void;
-  hideBackup?: boolean;
-}) {
-  const toggleBackupModal = () => setShowBackupModal(!showBackupModal);
+  network: INetworkData | undefined;
+}
 
-  const [showBackupModal, setShowBackupModal] = useState(false);
+export default function OnboardingNetworkSettings({
+  currentNetwork,
+  network,
+}: OnboardingNetworkSettingsProps) {
   const [showModal, setShowModal] = useState(false);
   const [storedPassphrase, setStoredPassphrase] = useState('');
   const {settings, saveSettings, availableNetworks} = useNetworkSettingsContext();
@@ -78,34 +68,53 @@ export default function NetworkSettings({
 
   const closeModal = () => setShowModal(false);
 
-  return (
-    <>
-      <span
+  if (!showModal) {
+    return (
+      <Button
         onClick={() => setShowModal(true)}
-        className="cursor-pointer purple-text-hover"
-      >
-        <Settings
-          cursor={'pointer'}
-          width={15}
-        />{' '}
-        Settings
-      </span>
-      <ModalContainer
-        show={showModal}
-        close={closeModal}
-        className="onboarding-settings-wrapper"
-      >
+        className="onboarding-settings-trigger"
+        aria-label="Open settings"
+        style="link"
+        text="Settings"
+      />
+    );
+  }
+
+  return (
+    <div
+      className="onboarding-settings-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboarding-settings-title"
+    >
+      <div
+        className="onboarding-settings-backdrop"
+        onClick={closeModal}
+      />
+      <div className="onboarding-settings-modal">
         {/* Header */}
         <header className="onboarding-settings-header">
           <div className="onboarding-settings-title-group">
             <div className="onboarding-settings-icon">
-              <Settings size={40} />
+              <Zap size={20} />
             </div>
             <div>
-              <h2 className="onboarding-settings-title">Settings</h2>
+              <h2
+                id="onboarding-settings-title"
+                className="onboarding-settings-title"
+              >
+                Settings
+              </h2>
               <p className="onboarding-settings-version">Version 2.1.6</p>
             </div>
           </div>
+          <button
+            onClick={closeModal}
+            className="onboarding-settings-close"
+            aria-label="Close settings"
+          >
+            <X size={20} />
+          </button>
         </header>
 
         {/* Content */}
@@ -171,54 +180,13 @@ export default function NetworkSettings({
             </div>
           </div>
 
-          {/* Backup Wallet Card */}
-          {!hideBackup && storedPassphrase && (
-            <div className="onboarding-settings-card">
-              <div className="onboarding-settings-card-header">
-                <Settings size={16} />
-                <span>Security</span>
-              </div>
-              <div className="onboarding-settings-card-body">
-                <div className="onboarding-settings-row">
-                  <span className="onboarding-settings-label">Backup wallet</span>
-                  <Button
-                    onClick={toggleBackupModal}
-                    text="Backup"
-                    style="link"
-                    className="link-button custom-delegate-button purple-text align-end no-padding"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="onboarding-settings-actions">
-            {lockSession && isElectron() && (
-              <button
-                className="onboarding-settings-action-button"
-                onClick={lockSession}
-              >
-                <Lock size={18} />
-                <span>Lock session</span>
-              </button>
-            )}
-            {logout && (
-              <button
-                className="onboarding-settings-action-button onboarding-settings-action-button--danger"
-                onClick={logout}
-              >
-                <LogOut size={18} />
-                <span>Logout</span>
-              </button>
-            )}
-          </div>
         </div>
 
-        <ModalContainer show={showBackupModal}>
-          <BackupWallet closeModal={toggleBackupModal} />
-        </ModalContainer>
-      </ModalContainer>
-    </>
+        {/* Footer */}
+        <footer className="onboarding-settings-footer">
+          <p className="onboarding-settings-hint">Changes will apply immediately</p>
+        </footer>
+      </div>
+    </div>
   );
 }
