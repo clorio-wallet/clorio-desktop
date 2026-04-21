@@ -29,7 +29,7 @@ const BackupWallet = ({closeModal}: IProps) => {
   const {wallet} = useWallet();
 
   useEffect(() => {
-    setStoredPassphrase(getPassphraseFlag());
+    setStoredPassphrase(getPassphraseFla());
   }, []);
   /**
    * Derive the keypair from the mnemonic
@@ -137,6 +137,7 @@ const BackupWallet = ({closeModal}: IProps) => {
             className="big-icon-button"
             text="Cancel"
             onClick={closeModal}
+            style="link"
           />
         </Col>
         <Col xs={6}>
