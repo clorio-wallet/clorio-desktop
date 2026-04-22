@@ -12,21 +12,24 @@ import {
   storeSession,
   toMINA,
 } from '/@/tools';
-import {IWalletData, IWalletIdData} from '/@/types';
+import {IWalletIdData} from '/@/types';
 import {IBalanceContext} from '/@/contexts/balance/BalanceTypes';
 import {BalanceContext} from '/@/contexts/balance/BalanceContext';
 import {useNavigate} from 'react-router-dom';
 import Avatar from '/@/tools/avatar/avatar';
-import {Check, Trash} from 'react-feather';
-import {Badge} from 'react-bootstrap';
-import Input from '../../input/Input';
-import Button from '../../Button';
+import {Check, Trash, Plus, Key} from 'react-feather';
 import {toast} from 'react-toastify';
 import {useWallet} from '/@/contexts/WalletContext';
 import {useLazyQuery} from '@apollo/client';
 import {GET_ID} from '/@/graphql/query';
 import useSecureStorage from '/@/hooks/useSecureStorage';
 import {sendResponse} from '/@/tools/mina-zkapp-bridge';
+import Button from '../../Button';
+
+interface StoredAccount {
+  address: string;
+  accountId: number;
+}
 
 const MnemonicAccountSelection = ({
   currentAddress,
@@ -41,7 +44,7 @@ const MnemonicAccountSelection = ({
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [passphrase, setPassphrase] = useState('');
   const [hasMnemonic, setHasMnemonic] = useState(false);
-  const [storedAccounts, setStoredAccounts] = useState<IWalletData[]>([]);
+  const [storedAccounts, setStoredAccounts] = useState<StoredAccount[]>([]);
   const navigate = useNavigate();
   const {updateWallet} = useWallet();
   const {decryptData, hasEncryptedData} = useSecureStorage();
@@ -56,18 +59,18 @@ const MnemonicAccountSelection = ({
     const accounts = getAllAccounts();
     setStoredAccounts(accounts);
     const maximumId = getMaximumAccountId(accounts);
-    setAccountId(+maximumId + 1);
+    setAccountId(maximumId + 1);
   }, [currentAddress]);
 
   useEffect(() => {
     setHasMnemonic(getPassphraseFlag());
   }, []);
 
-  const getMaximumAccountId = (storedAccounts: IWalletData[]) => {
+  const getMaximumAccountId = (accounts: StoredAccount[]) => {
     let id = 0;
-    storedAccounts.forEach(({accountId}) => {
-      if (accountId && +accountId > +id) {
-        id = +accountId;
+    accounts.forEach(({accountId}) => {
+      if (accountId && accountId > id) {
+        id = accountId;
       }
     });
     return id;
@@ -75,6 +78,14 @@ const MnemonicAccountSelection = ({
 
   const addNewAccount = () => {
     setShowAddAccount(true);
+    // Calculate next available account ID
+    const maximumId = getMaximumAccountId(storedAccounts);
+    setAccountId(maximumId + 1);
+  };
+
+  const cancelAddAccount = () => {
+    setShowAddAccount(false);
+    setPassphrase('');
   };
 
   const onDelete = (address: string) => {
@@ -82,6 +93,7 @@ const MnemonicAccountSelection = ({
     const newAccounts = storedAccounts.filter(account => account.address !== address);
     removeBalance && removeBalance(address);
     setStoredAccounts(newAccounts);
+    toast.success('Account removed');
   };
 
   const accountExists = (address: string) => {
@@ -100,15 +112,15 @@ const MnemonicAccountSelection = ({
       throw new Error('Account number not selected');
     }
     try {
-      let mnemonic;
+      let mnemonic: string | undefined;
       if (hasEncryptedData) {
         mnemonic = decryptData(passphrase);
       }
       const keypair = await deriveAccountFromMnemonic(mnemonic || passphrase, accountId);
-      if (!accountExists(keypair?.pubKey)) {
+      if (!accountExists(keypair?.pubKey as string)) {
         if (keypair) {
           const {data} = await fetchUserId({variables: {publicKey: keypair.pubKey}});
-          const userId = +data?.idByPublicKey?.id || -1;
+          const userId = data?.idByPublicKey?.id ? +data.idByPublicKey.id : -1;
           await pushAccount({address: keypair.pubKey, accountId});
           await storeSession({
             address: keypair.pubKey,
@@ -130,7 +142,8 @@ const MnemonicAccountSelection = ({
           if (setShouldBalanceUpdate) {
             setShouldBalanceUpdate(true);
             onAccountChange({publicKey: keypair.pubKey, accountId});
-            setAccountId(1);
+            setShowAddAccount(false);
+            setPassphrase('');
           }
         }
       } else {
@@ -141,119 +154,133 @@ const MnemonicAccountSelection = ({
     }
   };
 
-  const accountNumberHandler = e => {
-    const value = e.currentTarget.value.includes('#')
-      ? e.currentTarget.value.split('Account #')[1]
-      : e.currentTarget.value;
-    if (/^\d+$/.test(value) || !value) {
-      setAccountId(value);
+  const handleAccountClick = (address: string) => {
+    if (address === currentAddress) return;
+    const wallet = getAccountByAddress(address);
+    if (wallet) {
+      onAccountChange({accountId: wallet.accountId, publicKey: address});
+      setShouldBalanceUpdate && setShouldBalanceUpdate(true);
+      sendResponse('account-change', address);
+      navigate('/');
+      toggleLoader(true);
     }
   };
 
   return (
-    <div className="flex flex-col gap-4 items-start w-100">
-      <div
-        className="w-100"
-        style={{paddingRight: '50px', maxHeight: '500px', overflowY: 'scroll'}}
-      >
+    <div className="mnemonic-account-container">
+      <div className="mnemonic-account-list">
+        {/* Existing Accounts */}
         {storedAccounts.map(({address, accountId}) => {
           const balance = getBalance && getBalance(address);
-          const disabled = currentAddress === address;
+          const isCurrent = currentAddress === address;
+          const balanceValue = balance?.unconfirmedTotal ? +balance.unconfirmedTotal : 0;
+
           return (
             <div
-              className="flex flex-row justify-between items-center gap-4 w-100"
               key={address}
+              className={`mnemonic-account-card ${isCurrent ? 'mnemonic-account-card--current' : ''}`}
+              onClick={() => handleAccountClick(address)}
             >
-              <div
-                className="flex flex-row items-center justify-stretch gap-4 higlight-on-hover justify-start"
-                onClick={() => {
-                  const wallet = getAccountByAddress(address);
-                  if (wallet) {
-                    onAccountChange({accountId: wallet.accountId, publicKey: address});
-                    setShouldBalanceUpdate(true);
-                    sendResponse('account-change', address);
-                    navigate('/');
-                    toggleLoader(true);
-                  }
-                }}
-              >
-                <Avatar
-                  address={address}
-                  size={50}
-                />
-                <div className="flex flex-col gap-2 max-w-90">
-                  <p className="mb-0 trim w-100">{address}</p>
-                  <div className="flex flex-row justify-start gap-4">
-                    <p className="mb-0 light-grey-text label-text">Account #{accountId}</p>
-                    <p className="mb-0 light-grey-text label-text">
-                      {toMINA(+balance?.unconfirmedTotal)} Mina
+              <div className="mnemonic-account-info">
+                <div className="mnemonic-account-avatar">
+                  <Avatar
+                    address={address}
+                    size={44}
+                  />
+                </div>
+                <div className="mnemonic-account-details">
+                  <p className="mnemonic-account-address">
+                    {address.slice(0, 8)}...{address.slice(-8)}
+                  </p>
+                  <div className="mnemonic-account-meta">
+                    <p className="mnemonic-account-label">
+                      <Key size={12} />
+                      Account #{accountId}
                     </p>
-                    {disabled && <Badge color="success"> Current </Badge>}
+                    <p className="mnemonic-account-balance">
+                      {toMINA(balanceValue)} MINA
+                    </p>
+                    {isCurrent && <span className="mnemonic-account-badge">Active</span>}
                   </div>
                 </div>
               </div>
-              {!disabled && (
-                <Trash
-                  cursor={'pointer'}
-                  onClick={() => onDelete(address)}
-                  color="rgb(209, 117, 122)"
-                  width={25}
-                  height={25}
-                  style={{minWidth: '25px', minHeight: '25px'}}
-                />
+              {!isCurrent && (
+                <div className="mnemonic-account-actions">
+                  <button
+                    className="mnemonic-account-delete"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onDelete(address);
+                    }}
+                    aria-label="Delete account"
+                  >
+                    <Trash />
+                  </button>
+                </div>
               )}
             </div>
           );
         })}
-        <div
-          key={'new'}
-          className="flex flex-row items-center justify-center gap-4 higlight-on-hover justify-start w-100"
-          onClick={addNewAccount}
-        >
-          <Avatar
-            address={''}
-            size={50}
-          />
-          {showAddAccount ? (
-            <>
-              <div className="no-mb w-100 flex flex-col gap-2">
-                <Input
-                  value={`Account #${accountId}`}
-                  placeholder="Enter account numer... "
-                  className="no-mb"
-                  inputHandler={accountNumberHandler}
-                />
-                <Input
-                  value={passphrase}
-                  placeholder={hasEncryptedData ? 'Password' : 'Passphrase '}
-                  type="text"
-                  hidden
-                  className="no-mb"
-                  inputHandler={e => {
-                    setPassphrase(e.currentTarget.value);
-                  }}
-                />
+
+        {/* Add New Account */}
+        {showAddAccount ? (
+          <div className="mnemonic-account-form">
+            <div className="mnemonic-account-form-header">
+              <div className="mnemonic-account-add-icon">
+                <Plus size={24} />
               </div>
-              <Button
-                className="text-center max-w-120"
-                onClick={deriveAccount}
-                text="Add"
-                style="primary"
-                icon={<Check />}
-                appendIcon
+              <h3 className="mnemonic-account-form-title">Add Account #{accountId}</h3>
+            </div>
+
+            <div className="mnemonic-account-form-group">
+              <label className="mnemonic-account-form-label">
+                {hasEncryptedData ? 'Password' : 'Passphrase'}
+              </label>
+              <input
+                type="password"
+                value={passphrase}
+                onChange={e => setPassphrase(e.target.value)}
+                placeholder={
+                  hasEncryptedData ? 'Enter your password...' : 'Enter your passphrase...'
+                }
+                className="mnemonic-account-form-input"
+                autoFocus
               />
-            </>
-          ) : (
-            <>
-              <div className="flex flex-col gap-2">
-                <p className="mb-0">Add new account</p>
-                <p className="mb-0 light-grey-text label-text">
-                  This account will share the same passphrase
-                </p>
-              </div>
-            </>
-          )}
-        </div>
+            </div>
+
+            <div className="mnemonic-account-form-actions">
+              <button
+                className="mnemonic-account-form-cancel"
+                onClick={cancelAddAccount}
+              >
+                Cancel
+              </button>
+              <Button
+                className="mnemonic-account-form-submit"
+                onClick={deriveAccount}
+                disabled={!passphrase}
+                text="Add Account"
+                icon={<Check size={18} />}
+                style='primary'
+              />
+            </div>
+          </div>
+        ) : (
+          <div
+            className="mnemonic-account-add"
+            onClick={addNewAccount}
+          >
+            <div className="onboarding-settings-icon">
+              <Plus size={24} />
+            </div>
+            <div className="mnemonic-account-add-info">
+              <p className="mnemonic-account-add-title">Add new account</p>
+              <p className="mnemonic-account-add-subtitle">
+                This account will share the same recovery phrase
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
