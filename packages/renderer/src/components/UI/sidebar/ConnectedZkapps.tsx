@@ -19,6 +19,7 @@ export const ConnectedZkapps = () => {
     <>
       <Button
         text="Show"
+        style="link"
         onClick={() => setShowModal(true)}
         className="link-button custom-delegate-button purple-text align-end  no-padding"
       />
