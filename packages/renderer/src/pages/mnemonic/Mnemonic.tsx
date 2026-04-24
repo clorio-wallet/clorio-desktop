@@ -2,7 +2,7 @@ import {useState} from 'react';
 import {isElectron} from '/@/tools/environment';
 import {useNavigate} from 'react-router-dom';
 import Hoc from '../../components/UI/Hoc';
-import {VerifyMnemonic} from './VerifyMnemonic';
+import VerifyMnemonic from './VerifyMnemonic';
 import RegisterStep from '../../components/UI/registration/RegistrationStep';
 import AccountSelection from '../../components/UI/registration/AccountSelection';
 import type {IKeypair, INetworkData} from '/@/types';
