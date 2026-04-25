@@ -92,7 +92,7 @@ export default function OnboardingStart() {
 
       {/* ── Footer ── */}
       <footer className="onboarding-layout__footer">
-        <Footer />
+        <Footer isOnboarding />
       </footer>
     </div>
   );

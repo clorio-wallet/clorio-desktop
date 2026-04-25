@@ -76,7 +76,7 @@ export default function OnboardingLayout({children, step}: OnboardingLayoutProps
 
       {/* ── Footer ── */}
       <footer className="onboarding-layout__footer">
-        <Footer />
+        <Footer isOnboarding />
       </footer>
     </div>
   );
