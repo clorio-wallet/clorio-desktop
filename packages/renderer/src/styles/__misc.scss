@@ -594,6 +594,7 @@ a:hover {
 .modal-content {
   --bs-modal-bg: #1a1a24;
   --bs-modal-border-radius: 10px;
+  background-color: #1a1a24 !important;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
