@@ -260,11 +260,10 @@
   min-height: 34px;
   display: flex;
   align-items: flex-start;
-  width: 100%;
 }
 
 .tx-validation-slot--persistent {
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
 .tx-address-status-icon {
@@ -709,10 +708,6 @@
     width: 100%;
     padding: 9px 12px;
     line-height: 1.45;
-  }
-
-  .tx-validation-slot--persistent {
-    min-height: 42px;
   }
 }
 

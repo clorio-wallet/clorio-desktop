@@ -339,6 +339,27 @@ const TransactionForm = ({
               htmlFor="recipient-address"
             >
               Recipient
+              <span>
+                <div className="tx-validation-slot tx-validation-slot--persistent">
+                  {validation.address === 'invalid' && (
+                    <div
+                      className="tx-validation-msg tx-validation-msg--error"
+                      role="alert"
+                    >
+                      <AlertCircle className="tx-validation-icon" />
+                      <span>{validation.message}</span>
+                    </div>
+                  )}
+                  {transactionData.receiverAddress && validation.address === 'valid' && (
+                    <div
+                      className="tx-validation-msg tx-validation-msg--success"
+                      role="status"
+                    >
+                      <span>Address looks valid</span>
+                    </div>
+                  )}
+                </div>
+              </span>
             </label>
             <div className="tx-form-input-with-copy">
               <Input
@@ -350,26 +371,6 @@ const TransactionForm = ({
                 inputBlurHandler={handleAddressBlur}
                 appendIcon={addressStatusIcon}
               />
-            </div>
-            <div className="tx-validation-slot tx-validation-slot--persistent">
-              {validation.address === 'invalid' && (
-                <div
-                  className="tx-validation-msg tx-validation-msg--error"
-                  role="alert"
-                >
-                  <AlertCircle className="tx-validation-icon" />
-                  <span>{validation.message}</span>
-                </div>
-              )}
-              {transactionData.receiverAddress && validation.address === 'valid' && (
-                <div
-                  className="tx-validation-msg tx-validation-msg--success"
-                  role="status"
-                >
-                  <CheckCircle className="tx-validation-icon" />
-                  <span>Address looks valid</span>
-                </div>
-              )}
             </div>
           </div>
 
