@@ -41,16 +41,13 @@ const RegisterStep = ({keys, setValidation, goToNext, goBack}: IProps) => {
           <div className="oi-flex-responsive w-full gap-3">
             <div className="flex items-center gap-3">
               <span className="oi-section-label">Recovery Phrase</span>
-              <div 
-                className="oi-copy-badge cursor-pointer flex items-center gap-1.5" 
+              <Button
+                style="link"
                 onClick={copyMnemonic}
-                title="Copy all words"
-              >
-                <Copy size={13} />
-                <span>Copy All</span>
-              </div>
+                icon={<Copy size={13} />}
+              ></Button>
             </div>
-            
+
             <Button
               className="oi-toggle-details-btn p-0"
               onClick={toggleDetails}
@@ -63,7 +60,10 @@ const RegisterStep = ({keys, setValidation, goToNext, goBack}: IProps) => {
 
         <div className="oi-grid oi-grid--3-col mb-4">
           {keys.mnemonic?.split(' ').map((word, index) => (
-            <div key={index} className="oi-word-cell oi-word-cell--static">
+            <div
+              key={index}
+              className="oi-word-cell oi-word-cell--static"
+            >
               <span className="oi-word-index">{index + 1}</span>
               <span className="oi-word-static-text">{word}</span>
             </div>
@@ -75,25 +75,32 @@ const RegisterStep = ({keys, setValidation, goToNext, goBack}: IProps) => {
             <div className="mb-4">
               <label className="oi-section-label mb-1">Public Key (Address)</label>
               <div className="oi-word-cell oi-word-cell--full">
-                <span className="oi-word-static-text selectable-text font-mono text-xs">{keys.publicKey}</span>
+                <span className="oi-word-static-text selectable-text font-mono text-xs">
+                  {keys.publicKey}
+                </span>
               </div>
             </div>
             <div>
               <label className="oi-section-label mb-1">Private Key</label>
               <div className="oi-word-cell oi-word-cell--full">
-                <span className="oi-word-static-text selectable-text font-mono text-xs">{keys.privateKey}</span>
+                <span className="oi-word-static-text selectable-text font-mono text-xs">
+                  {keys.privateKey}
+                </span>
               </div>
             </div>
           </div>
         )}
 
         <div className="oi-security-banner mt-5">
-          <FileText className="oi-security-icon" strokeWidth={1.5} />
+          <FileText
+            className="oi-security-icon"
+            strokeWidth={1.5}
+          />
           <div className="oi-security-text">
             <strong>Security First</strong>
             <p>
-              This is the only time you will see your keys. Write them down offline.
-              If you lose them, you lose access to your funds forever.
+              This is the only time you will see your keys. Write them down offline. If you lose
+              them, you lose access to your funds forever.
             </p>
             <Button
               className="purple-text p-0 font-weight-600 mt-2 hover-underline"

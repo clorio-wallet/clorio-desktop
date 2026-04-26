@@ -29,7 +29,7 @@ const BackupWallet = ({closeModal}: IProps) => {
   const {wallet} = useWallet();
 
   useEffect(() => {
-    setStoredPassphrase(getPassphraseFla());
+    setStoredPassphrase(getPassphraseFlag());
   }, []);
   /**
    * Derive the keypair from the mnemonic
