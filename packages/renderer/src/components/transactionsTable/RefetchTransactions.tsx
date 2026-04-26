@@ -1,55 +1,131 @@
-import { useEffect, useState } from 'react';
-import Button from '../UI/Button';
-import { DEFAULT_REFRESH_COUNTDOWN } from '../../tools';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {DEFAULT_REFRESH_COUNTDOWN} from '../../tools';
 
-const RefetchTransactions = ({ refetch }: any) => {
+const RefetchTransactions = ({refetch}: {refetch: (refresh?: boolean) => void}) => {
   const [countdown, setCountdown] = useState(DEFAULT_REFRESH_COUNTDOWN);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const refetchRef = useRef(refetch);
 
-  const countdownHandler = () => {
-    if (countdown === 0) {
-      refetch();
-      setCountdown(DEFAULT_REFRESH_COUNTDOWN);
-    } else {
-      setCountdown(countdown - 1);
-    }
-  };
+  refetchRef.current = refetch;
 
-  let interval = setInterval(countdownHandler, 1000);
+  const circumference = useMemo(() => 2 * Math.PI * 12, []);
+  const progress = (DEFAULT_REFRESH_COUNTDOWN - countdown) / DEFAULT_REFRESH_COUNTDOWN;
+  const strokeDashoffset = circumference * (1 - progress);
 
-  /**
-   * On component dismount clear interval
-   */
   useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev === 0) {
+          refetchRef.current();
+          return DEFAULT_REFRESH_COUNTDOWN;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
     return () => {
-      clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
-  });
+  }, []);
 
-  /**
-   * Reset countdown and refetch data
-   */
+  const isAboutToRefresh = countdown <= 5;
+  const justFetched = countdown >= DEFAULT_REFRESH_COUNTDOWN - 5;
+
   const refetchAndResetTimer = async () => {
-    if (countdown !== DEFAULT_REFRESH_COUNTDOWN) {
-      setCountdown(DEFAULT_REFRESH_COUNTDOWN);
-      clearInterval(interval);
-      interval = setInterval(countdownHandler, 1000);
-      await refetch(true);
+    if (justFetched) return;
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
+    setCountdown(DEFAULT_REFRESH_COUNTDOWN);
+    intervalRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev === 0) {
+          refetchRef.current();
+          return DEFAULT_REFRESH_COUNTDOWN;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    await refetchRef.current(true);
   };
-
-  if (countdown >= 20) {
-    return <div className="small-text pt-3 mb-1 px-3">Just fetched</div>;
-  }
 
   return (
-    <div className="small-text pt-3 mb-1">
-      Fetching data in {countdown}s
-      <Button
-        className="inline-element link-button"
-        text="Refresh"
-        onClick={refetchAndResetTimer}
-      />
-    </div>
+    <button
+      type="button"
+      title="Refresh transactions"
+      aria-label="Refresh transactions"
+      onClick={refetchAndResetTimer}
+      className={[
+        'refetch-container',
+        justFetched ? 'refetch-container--fresh' : '',
+        isAboutToRefresh ? 'refetch-container--about' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <div
+        className="refetch-status"
+        aria-live="polite"
+      >
+        <div className="refetch-copy-stack">
+          <div
+            className={`refetch-copy refetch-copy--fresh ${justFetched ? 'is-visible' : ''}`}
+            aria-hidden={!justFetched}
+          >
+            <strong>Synced</strong>
+          </div>
+          <div
+            className={`refetch-copy refetch-copy--countdown ${justFetched ? '' : 'is-visible'}`}
+            aria-hidden={justFetched}
+          >
+            <strong>{countdown}s</strong>
+          </div>
+        </div>
+        <div className="refetch-arc-wrap">
+          <svg
+            className="refetch-arc"
+            viewBox="0 0 32 32"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient
+                id="arc-gradient"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
+              >
+                <stop
+                  offset="0%"
+                  stopColor="#c197ff"
+                />
+                <stop
+                  offset="100%"
+                  stopColor="#f38c3e"
+                />
+              </linearGradient>
+            </defs>
+            <circle
+              className="arc-bg"
+              cx="16"
+              cy="16"
+              r="12"
+            />
+            <circle
+              className="arc-progress"
+              cx="16"
+              cy="16"
+              r="12"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+            />
+          </svg>
+          <span className="refetch-arc-core" />
+        </div>
+      </div>
+    </button>
   );
 };
 

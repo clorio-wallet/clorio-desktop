@@ -29,6 +29,7 @@
   border-collapse: separate;
   border-spacing: 0;
   
+  
   thead {
     th {
       padding: 12px 16px;
@@ -523,6 +524,11 @@
   &.amount--incoming { color: #4ade80; }
   &.amount--outgoing { color: #f87171; }
   &.amount--neutral { color: rgba(255, 255, 255, 0.9); }
+}
+
+.transaction-table_header{
+  display: flex;
+  flex-direction: row;
 }
 
 /* ── Responsive: Mobile (< 768px) ── */
