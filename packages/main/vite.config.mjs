@@ -26,7 +26,10 @@ const config = {
     assetsDir: '.',
     minify: process.env.MODE !== 'development',
     lib: {
-      entry: 'src/index.ts',
+      entry: {
+        index: 'src/index.ts',
+        'presentation-service': 'src/presentation-service-process.ts',
+      },
       formats: ['cjs'],
     },
     rollupOptions: {
