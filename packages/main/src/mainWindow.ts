@@ -6,6 +6,7 @@
 import {app, BrowserWindow, ipcMain, Menu, session} from 'electron';
 import * as path from 'node:path';
 import {join, resolve} from 'node:path';
+import {PresentationService} from './presentationService';
 const {MinaLedgerJS} = require('mina-ledger-js');
 const TransportNodeHid = require('@ledgerhq/hw-transport-node-hid-singleton');
 import {shell} from 'electron';
@@ -13,6 +14,9 @@ import {shell} from 'electron';
 const isMac = process.platform === 'darwin';
 let browserWindow: BrowserWindow;
 let childWindow: BrowserWindow;
+const presentationService = new PresentationService(
+  join(__dirname, 'presentation-service.cjs'),
+);
 
 const canSendToWindow = (window?: BrowserWindow) =>
   !!window && !window.isDestroyed() && !window.webContents.isDestroyed();
@@ -179,26 +183,10 @@ async function createWindow() {
   const mainWindowWebContentsId = browserWindow.webContents.id;
   browserWindow.webContents.session.webRequest.onHeadersReceived(
     (details: Electron.OnHeadersReceivedListenerDetails, callback) => {
-      if (details.webContentsId !== mainWindowWebContentsId) {
-        callback({responseHeaders: details.responseHeaders});
-        return;
-      }
-
-      if (details.url.includes('presentation-worker')) {
-        callback({
-          responseHeaders: {
-            ...details.responseHeaders,
-            'Content-Security-Policy': [
-              "default-src 'self' blob: data:; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:",
-            ],
-            'Cross-Origin-Resource-Policy': ['same-origin'],
-            'Cross-Origin-Embedder-Policy': ['credentialless'],
-          },
-        });
-        return;
-      }
-
-      if (details.resourceType !== 'mainFrame') {
+      if (
+        details.webContentsId !== mainWindowWebContentsId ||
+        details.resourceType !== 'mainFrame'
+      ) {
         callback({responseHeaders: details.responseHeaders});
         return;
       }
@@ -207,10 +195,6 @@ async function createWindow() {
         responseHeaders: {
           ...details.responseHeaders,
           'Content-Security-Policy': [buildCSP(import.meta.env.DEV)],
-          // o1js uses SharedArrayBuffer in its proof worker. Chromium exposes it
-          // only to cross-origin-isolated documents.
-          'Cross-Origin-Opener-Policy': ['same-origin'],
-          'Cross-Origin-Embedder-Policy': ['credentialless'],
         },
       });
     },
@@ -275,6 +259,24 @@ ipcMain.handle('ledger-sign-transaction', async (event, transaction) => {
   const transport = await TransportNodeHid.default.open();
   const instance = new MinaLedgerJS(transport);
   return await instance.signTransaction(transaction);
+});
+ipcMain.handle('presentation-prepare', async (event, payload: string) => {
+  if (!browserWindow || event.sender.id !== browserWindow.webContents.id) {
+    throw new Error('Untrusted presentation request sender.');
+  }
+  return JSON.stringify(await presentationService.prepare(JSON.parse(payload)));
+});
+ipcMain.handle('presentation-finalize', async (event, payload: string) => {
+  if (!browserWindow || event.sender.id !== browserWindow.webContents.id) {
+    throw new Error('Untrusted presentation request sender.');
+  }
+  return JSON.stringify(await presentationService.finalize(JSON.parse(payload)));
+});
+ipcMain.handle('presentation-abort', (event, id) => {
+  if (!browserWindow || event.sender.id !== browserWindow.webContents.id) {
+    throw new Error('Untrusted presentation request sender.');
+  }
+  presentationService.abort(id);
 });
 
 ipcMain.handle('open-win', (_: Electron.IpcMainInvokeEvent, arg) => {
@@ -584,6 +586,7 @@ function cleanup() {
   Object.keys(eventHandlers).forEach(eventName => {
     ipcMain.removeAllListeners(eventName);
   });
+  presentationService.dispose();
 }
 
 ipcMain.on('clorio-error', (event, data) => {
