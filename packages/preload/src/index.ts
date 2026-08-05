@@ -33,6 +33,9 @@ const ALLOWED_INVOKE_CHANNELS: ReadonlySet<string> = new Set([
   'ledger-get-name-version',
   'ledger-get-address',
   'ledger-sign-transaction',
+  'presentation-prepare',
+  'presentation-finalize',
+  'presentation-abort',
   'open-win',
 ]);
 

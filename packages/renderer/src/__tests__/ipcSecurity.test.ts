@@ -28,6 +28,9 @@ const ALLOWED_INVOKE_CHANNELS = new Set([
   'ledger-get-name-version',
   'ledger-get-address',
   'ledger-sign-transaction',
+  'presentation-prepare',
+  'presentation-finalize',
+  'presentation-abort',
   'open-win',
 ]);
 
@@ -109,6 +112,9 @@ const RENDERER_INVOKE_USAGES = [
   'ledger-get-address',        // tools/ledger/ledgerElectronAPI.ts
   'ledger-sign-transaction',   // tools/ledger/ledgerElectronAPI.ts
   'open-win',                  // modals/zkAppIntegration — ZkappConnectedApps, ZkappIframe, ZkappSidebar
+  'presentation-prepare',      // isolated proof service prepare phase
+  'presentation-finalize',     // isolated proof service finalize phase
+  'presentation-abort',        // terminate a failed proof service job
 ] as const;
 
 // Channels that must NEVER appear in any allowlist (security-critical)
