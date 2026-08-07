@@ -16,21 +16,21 @@ export const findMatchingCredentialRecords = (
   );
 };
 
-/**
- * Generates a presentation in an isolated worker. The worker prepares the
- * proof and returns only fields to sign. The private key remains in the trusted
- * renderer, which returns only the resulting signature for finalization.
- */
+/** Generates a proof in an Electron utility process without sharing the key. */
 export const requestPresentation = async ({
   presentationRequest,
   origin,
   accountPublicKey,
+  walletSecret,
   privateKey,
+  onProgress,
 }: {
   presentationRequest: unknown;
   origin: string;
   accountPublicKey: string;
+  walletSecret: string;
   privateKey: string;
+  onProgress?: (status: string) => void;
 }): Promise<{presentation: string}> => {
   const records = listCredentialRecords(accountPublicKey);
   if (records.length === 0) {
@@ -42,88 +42,38 @@ export const requestPresentation = async ({
     throw new Error('No stored credential was found for this site.');
   }
 
+  onProgress?.('Decrypting your credential…');
   const credentials = await Promise.all(
-    matchingRecords.map(record => decryptCredential(record, privateKey)),
+    matchingRecords.map(record => decryptCredential(record, walletSecret)),
   );
-  if (!window.crossOriginIsolated) {
-    throw new Error('Clorio proof runner is not cross-origin isolated.');
-  }
-
-  const worker = new Worker(new URL('./presentation-worker.ts', import.meta.url), {
-    type: 'module',
-  });
   const id = crypto.randomUUID();
-
-  return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => {
-      worker.terminate();
-      reject(new Error('Presentation generation timed out.'));
-    }, 120_000);
-
-    const finish = () => {
-      window.clearTimeout(timeout);
-      worker.terminate();
-    };
-
-    worker.onerror = event => {
-      console.error('Presentation worker error event:', {
-        message: event.message,
-        filename: event.filename,
-        line: event.lineno,
-        column: event.colno,
-        error: event.error,
-        crossOriginIsolated: window.crossOriginIsolated,
-      });
-      finish();
-      reject(
-        event.error instanceof Error
-          ? event.error
-          : new Error(event.message || 'Presentation worker failed.'),
-      );
-    };
-
-    worker.onmessage = async (
-      event: MessageEvent<
-        | {type: 'prepared'; id: string; messageFields: string[]}
-        | {type: 'completed'; id: string; presentation: string}
-        | {type: 'failed'; id: string; message: string; stack?: string}
-      >,
-    ) => {
-      const message = event.data;
-      if (message.id !== id) return;
-
-      if (message.type === 'failed') {
-        finish();
-        const error = new Error(message.message);
-        if (message.stack) error.stack = message.stack;
-        reject(error);
-        return;
-      }
-
-      if (message.type === 'prepared') {
-        try {
-          const signed = await (await client()).signFields(
-            message.messageFields.map(BigInt),
-            privateKey,
-          );
-          worker.postMessage({type: 'finalize', id, signature: signed.signature});
-        } catch (error) {
-          finish();
-          reject(error);
-        }
-        return;
-      }
-
-      finish();
-      resolve({presentation: message.presentation});
-    };
-
-    worker.postMessage({
-      type: 'prepare',
-      id,
-      presentationRequest,
-      credentials,
-      origin: new URL(origin).origin,
-    });
-  });
+  try {
+    onProgress?.('Generating the zero-knowledge proof…');
+    const prepared = JSON.parse(
+      (await window.ipcBridge.invoke(
+        'presentation-prepare',
+        JSON.stringify({
+          id,
+          presentationRequest,
+          credentials,
+          origin: new URL(origin).origin,
+        }),
+      )) as string,
+    ) as {id: string; messageFields: string[]};
+    onProgress?.('Signing the presentation…');
+    const signed = await (await client()).signFields(
+      prepared.messageFields.map(BigInt),
+      privateKey,
+    );
+    onProgress?.('Finalizing the presentation…');
+    return JSON.parse(
+      (await window.ipcBridge.invoke(
+        'presentation-finalize',
+        JSON.stringify({id, signature: signed.signature}),
+      )) as string,
+    ) as {presentation: string};
+  } catch (error) {
+    await window.ipcBridge.invoke('presentation-abort', id).catch(() => undefined);
+    throw error;
+  }
 };

@@ -123,9 +123,6 @@ const config = {
       strict: true,
     },
   },
-  worker: {
-    format: 'es',
-  },
   build: {
     sourcemap: true,
     target: `chrome${chrome}`,
