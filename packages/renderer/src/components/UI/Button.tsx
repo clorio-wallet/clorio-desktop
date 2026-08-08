@@ -52,6 +52,7 @@ const getVariantClassName = (variant?: ButtonVariant) => {
 
 interface IProps {
   className?: string;
+  type?: 'button' | 'submit';
   onClick?: () => void;
   text?: string;
   icon?: React.ReactNode;
@@ -68,6 +69,7 @@ interface IProps {
 
 const Button = ({
   className,
+  type = 'button',
   onClick,
   text,
   icon,
@@ -138,7 +140,7 @@ const Button = ({
 
   return (
     <button
-      type="button"
+      type={type}
       className={baseClasses}
       onClick={clickHandler}
       disabled={disabled}

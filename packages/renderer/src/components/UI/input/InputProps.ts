@@ -13,4 +13,5 @@ export interface IInputProps {
   id?: string;
   hidden?: boolean;
   appendIcon?: ReactNode;
+  disabled?: boolean;
 }

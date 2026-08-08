@@ -14,6 +14,7 @@ const Input = ({
   appendIcon,
   id,
   name,
+  disabled,
 }: IInputProps) => {
   const [showText, setShowText] = useState<boolean>(false);
 
@@ -41,6 +42,7 @@ const Input = ({
         onBlur={inputBlurHandler}
         placeholder={placeholder}
         autoComplete="off"
+        disabled={disabled}
         min="0"
       />
       {appendIcon && <span className="append-icon">{appendIcon}</span>}
