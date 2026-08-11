@@ -123,6 +123,9 @@ const config = {
       strict: true,
     },
   },
+  worker: {
+    format: 'es',
+  },
   build: {
     sourcemap: true,
     target: `chrome${chrome}`,
@@ -149,11 +152,6 @@ const config = {
     injectAppVersion(),
     nodePolyfills(),
   ],
-  define: {
-    'process.env': {
-      'NODE_DEBUG': false,
-    },
-  },
   optimizeDeps: {
     exclude: ['react-content-loader', 'react-truncate-inside'],
   },

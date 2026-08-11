@@ -112,7 +112,7 @@ function buildCSP(isDev: boolean): string {
       `font-src ${self} ${fonts}`,
       // ws:/wss: required for Vite HMR WebSocket
       `connect-src ${self} ws: wss: ${api} https://*.clor.io/v1/graphql https://api.mina.tools/v1/epoch`,
-      `img-src ${self} data: https://*.staketab.com`,
+      `img-src ${self} data: https://*.staketab.com https://s2.googleusercontent.com https://*.gstatic.com`,
       'object-src \'none\'',
       `worker-src blob: ${self}`,
     ].join('; ');
@@ -125,7 +125,7 @@ function buildCSP(isDev: boolean): string {
     `style-src ${self} ${fonts}`,
     `font-src ${self} ${fonts}`,
     `connect-src ${self} ${api} https://*.clor.io/v1/graphql https://api.mina.tools/v1/epoch`,
-    `img-src ${self} data: https://*.staketab.com`,
+    `img-src ${self} data: https://*.staketab.com https://s2.googleusercontent.com`,
     'object-src \'none\'',
     `worker-src blob: ${self}`,
   ].join('; ');
@@ -173,14 +173,48 @@ async function createWindow() {
    * This is the correct approach for Electron — meta tags are unreliable
    * and cannot cover all resource types (e.g. WebAssembly compilation).
    */
-  browserWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': [buildCSP(import.meta.env.DEV)],
-      },
-    });
-  });
+  // Apply Clorio's CSP only to the main (trusted wallet) window. The zkApp child
+  // window loads third-party sites and must keep its own page's policies (which
+  // allow the eval/wasm that o1js proof compilation needs).
+  const mainWindowWebContentsId = browserWindow.webContents.id;
+  browserWindow.webContents.session.webRequest.onHeadersReceived(
+    (details: Electron.OnHeadersReceivedListenerDetails, callback) => {
+      if (details.webContentsId !== mainWindowWebContentsId) {
+        callback({responseHeaders: details.responseHeaders});
+        return;
+      }
+
+      if (details.url.includes('presentation-worker')) {
+        callback({
+          responseHeaders: {
+            ...details.responseHeaders,
+            'Content-Security-Policy': [
+              "default-src 'self' blob: data:; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:",
+            ],
+            'Cross-Origin-Resource-Policy': ['same-origin'],
+            'Cross-Origin-Embedder-Policy': ['credentialless'],
+          },
+        });
+        return;
+      }
+
+      if (details.resourceType !== 'mainFrame') {
+        callback({responseHeaders: details.responseHeaders});
+        return;
+      }
+
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': [buildCSP(import.meta.env.DEV)],
+          // o1js uses SharedArrayBuffer in its proof worker. Chromium exposes it
+          // only to cross-origin-isolated documents.
+          'Cross-Origin-Opener-Policy': ['same-origin'],
+          'Cross-Origin-Embedder-Policy': ['credentialless'],
+        },
+      });
+    },
+  );
 
   /**
    * Load the main page of the main window.
@@ -256,10 +290,29 @@ ipcMain.handle('open-win', (_: Electron.IpcMainInvokeEvent, arg) => {
       contextIsolation: true,
       sandbox: false, // Sandbox disabled because the preload script depends on the Node.js api
       webSecurity: true,
+      devTools: import.meta.env.DEV,
     },
   });
 
   childWindow.loadURL(`${browserUrl}`);
+  if (import.meta.env.DEV) {
+    childWindow.webContents.openDevTools({mode: 'detach'});
+  }
+  childWindow.webContents.executeJavaScript(`
+    (() => {
+      const announceProvider = () => {
+        if (!window.mina) return;
+        window.dispatchEvent(new CustomEvent('mina:announceProvider', {
+          detail: Object.freeze({
+            info: Object.freeze({slug: 'clorio-connect', name: 'Clorio Connect'}),
+            provider: window.mina,
+          }),
+        }));
+      };
+      window.addEventListener('mina:requestProvider', announceProvider);
+      announceProvider();
+    })();
+  `);
   childWindow.webContents.executeJavaScript(`
     const draggableBar = document.createElement('div');
     draggableBar.style.position = 'fixed';
@@ -499,6 +552,8 @@ const eventHandlers = {
   ...createEventHandler('stake-delegation', 'staked-delegation'),
   ...createEventHandler('sign-fields', 'signed-fields'),
   ...createEventHandler('verify-fields', 'verified-fields'),
+  ...createEventHandler('store-private-credential', 'stored-private-credential'),
+  ...createEventHandler('request-presentation', 'presentation-created'),
   'focus-clorio': () => {
     if (canSendToWindow(browserWindow)) {
       browserWindow.focus();

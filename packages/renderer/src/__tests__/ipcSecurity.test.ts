@@ -35,6 +35,25 @@ const ALLOWED_SEND_CHANNELS = new Set([
   'CHECK_FOR_UPDATE_PENDING',
   'account-change',
   'chain-change',
+  'clorio-set-network-config',
+  'clorio-set-address',
+  'clorio-set-accounts',
+  'clorio-signed-tx',
+  'clorio-signed-message',
+  'clorio-signed-payment',
+  'clorio-added-chain',
+  'clorio-switched-chain',
+  'clorio-verified-message',
+  'clorio-signed-json-message',
+  'clorio-verified-json-message',
+  'clorio-created-nullifier',
+  'clorio-staked-delegation',
+  'clorio-signed-fields',
+  'clorio-verified-fields',
+  'clorio-stored-private-credential',
+  'clorio-presentation-created',
+  'clorio-error',
+  'focus-clorio',
 ]);
 
 const ALLOWED_ON_CHANNELS = new Set([
@@ -59,6 +78,7 @@ const ALLOWED_ON_CHANNELS = new Set([
   'clorio-staked-delegation',
   'clorio-signed-fields',
   'clorio-verified-fields',
+  'clorio-presentation-created',
   'error',
 ]);
 
@@ -67,6 +87,10 @@ const RENDERER_SEND_USAGES = [
   'CHECK_FOR_UPDATE_PENDING', // tools/utils.ts — electronAlerts
   'account-change',           // main process forwards this — used in chain-change flow
   'chain-change',             // main process forwards this
+  'clorio-stored-private-credential', // credential approval result
+  'clorio-presentation-created', // presentation result
+  'clorio-error',              // zkApp rejection/error
+  'focus-clorio',              // focus trusted wallet for approval
 ] as const;
 
 // Channels the renderer actually subscribes to (gathered from grep of ipcBridge.on calls)
@@ -338,12 +362,11 @@ describe('channel naming conventions', () => {
     }
   });
 
-  it('all clorio-* ON channels follow the clorio-<verb>-<noun> pattern', () => {
+  it('all clorio-* ON channels use kebab-case', () => {
     const clorioChannels = [...ALLOWED_ON_CHANNELS].filter(ch => ch.startsWith('clorio-'));
     expect(clorioChannels.length).toBeGreaterThan(0);
     for (const ch of clorioChannels) {
-      // Must have at least one hyphen after "clorio-"
-      expect(ch.split('-').length).toBeGreaterThanOrEqual(3);
+      expect(ch).toMatch(/^clorio-[a-z0-9-]+$/);
     }
   });
 

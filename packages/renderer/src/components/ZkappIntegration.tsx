@@ -5,6 +5,7 @@ import {
   configState,
   connectZkappState,
   connectedSitesState,
+  credentialApprovalState,
   networkState,
   walletState,
   zkappState,
@@ -19,6 +20,9 @@ import AddChain from './UI/modals/zkAppIntegration/AddChain';
 import ConfirmZkappTransaction from './UI/modals/zkAppIntegration/ConfirmZkappTransaction';
 import {ERROR_CODES} from '../tools/zkapp';
 import ConnectZkapp from './UI/modals/zkAppIntegration/ConnectZkapp';
+import CredentialApproval from './UI/modals/zkAppIntegration/CredentialApproval';
+import PresentationApproval from './UI/modals/zkAppIntegration/PresentationApproval';
+import {validateCredentialPayload} from '../tools/credentials';
 
 export default function ZkappIntegration() {
   const wallet = useRecoilValue(walletState);
@@ -26,6 +30,7 @@ export default function ZkappIntegration() {
   const updateConnectZkapp = useSetRecoilState(connectZkappState);
   const {address: sender} = wallet;
   const setZkappState = useSetRecoilState(zkappState);
+  const setCredentialApproval = useSetRecoilState(credentialApprovalState);
   const config = useRecoilValue(configState);
   const [{availableNetworks, selectedNetwork, selectedNode}, setNetworkState] =
     useRecoilState(networkState);
@@ -123,6 +128,14 @@ export default function ZkappIntegration() {
 
         case 'clorio-verify-fields':
           await verifyFields(data);
+          break;
+
+        case 'clorio-store-private-credential':
+          storeCredential(data, source);
+          break;
+
+        case 'clorio-request-presentation':
+          requestApproval(data, source);
           break;
 
         default:
@@ -409,6 +422,52 @@ export default function ZkappIntegration() {
     sendResponse('clorio-verified-fields', verified);
   };
 
+  const storeCredential = (data: {credential?: unknown}, source: string) => {
+    rejectIfLedger();
+    if (!config.isAuthenticated || !wallet.address) {
+      sendResponse('clorio-error', ERROR_CODES.noWallet);
+      return;
+    }
+
+    try {
+      validateCredentialPayload(data?.credential, wallet.address);
+      sendResponse('focus-clorio');
+      setCredentialApproval({
+        show: true,
+        request: {credential: data.credential, source},
+      });
+    } catch (error) {
+      sendResponse('clorio-error', {
+        ...ERROR_CODES.invalidParams,
+        message: error instanceof Error ? error.message : ERROR_CODES.invalidParams.message,
+      });
+    }
+  };
+
+  const requestApproval = (data: {presentation?: {presentationRequest?: unknown}}, source: string) => {
+    rejectIfLedger();
+    if (!config.isAuthenticated || !wallet.address) {
+      sendResponse('clorio-error', ERROR_CODES.noWallet);
+      return;
+    }
+
+    const presentationRequest = data?.presentation?.presentationRequest;
+    if (!presentationRequest) {
+      sendResponse('clorio-error', {
+        ...ERROR_CODES.invalidParams,
+        message: 'Missing presentation request payload.',
+      });
+      return;
+    }
+
+    sendResponse('focus-clorio');
+    setZkappState(prev => ({
+      ...prev,
+      showPresentationApproval: true,
+      presentationRequest: {request: presentationRequest, source},
+    }));
+  };
+
   return (
     <>
       <SignMessage />
@@ -418,6 +477,8 @@ export default function ZkappIntegration() {
       <ChangeNetwork />
       <AddChain />
       <ConnectZkapp />
+      <CredentialApproval />
+      <PresentationApproval />
     </>
   );
 }
