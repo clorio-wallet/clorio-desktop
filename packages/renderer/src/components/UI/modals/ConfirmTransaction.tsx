@@ -1,9 +1,10 @@
-import {Row, Col} from 'react-bootstrap';
+import {useState} from 'react';
 import type {ITransactionData} from '../../../types/TransactionData';
 import {toLongMINA, trimMiddle} from '../../../tools';
-import Button from '../Button';
 import {ArrowLeft, ArrowRight} from 'react-feather';
 import Avatar from '../../../tools/avatar/avatar';
+import './ConfirmTransaction.scss';
+import Button from '../Button';
 
 interface IProps {
   transactionData: ITransactionData;
@@ -11,90 +12,124 @@ interface IProps {
   stepBackward: () => void;
   walletAddress: string;
   isLedgerEnabled?: boolean;
+  isLoading?: boolean;
   ledgerTransactionData: any;
 }
 
-export const ConfirmTransaction = ({stepBackward, sendTransaction, transactionData}: IProps) => {
+export const ConfirmTransaction = ({
+  stepBackward,
+  sendTransaction,
+  transactionData,
+  isLoading = false,
+  walletAddress,
+}: IProps) => {
   const {amount, fee, receiverAddress, memo} = transactionData;
+  const [isConfirming, setIsConfirming] = useState(false);
+  const totalAmount = (+amount || 0) + (+fee || 0);
+
+  const handleConfirm = async () => {
+    setIsConfirming(true);
+    try {
+      await sendTransaction();
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  const isDisabled = isLoading || isConfirming;
+
   return (
-    <div className="mx-auto  ">
-      <div className="">
-        <div className="vertical-center w-75 mx-auto mt-4">
-          <Row className="justify-content-center">
-            <Col
-              xs={12}
-              xl={8}
-            >
-              <div className="mt-3 mb-2 label">
-                <p className=" text-center w-100">You are going to send </p>
-              </div>
-              <Row className="w-100 mx-auto flex-col items-center mb-2">
-                <Col xs={12}>
-                  <h3 className="selectable-text mb-0 text-center w-100">
-                    {toLongMINA(amount)} MINA
-                  </h3>
-                  <small>Amount</small>
-                </Col>
-                <Col xs={12}>
-                  {' '}
-                  <h3 className="mx-auto">+</h3>{' '}
-                </Col>
-                <Col xs={12}>
-                  <h3 className="selectable-text mb-0 text-center w-100">{toLongMINA(fee)} MINA</h3>
-                  <small>Fee</small>
-                </Col>
-              </Row>
-            </Col>
-            <Col
-              xs={12}
-              lg={10}
-              className="justify-content-center"
-            >
-              <div className="align-left mt-4 mb-0 label">
-                <p className="text-center w-100">to the following address </p>
-              </div>
-              <div className="my-3">
-                <div className="inline-block-element small-avatar vertical-align-top ">
-                  <Avatar address={receiverAddress} />
-                </div>
-                <h4 className="inline-block-element lh-30px transaction-form-address truncate-text mb-0">
-                  {trimMiddle(receiverAddress, 40)}
-                </h4>
-              </div>
-            </Col>
-            {memo && (
-              <Col xs={12}>
-                <div className="align-left mt-2 mb-0 label">
-                  <p className="text-center w-100">with the following memo </p>
-                </div>
-                <div className="my-3">
-                  <h4 className="inline-block-element lh-30px transaction-form-address truncate-text mb-0 text-center">
-                    {memo}
-                  </h4>
-                </div>
-              </Col>
-            )}
-          </Row>
-          <div className="flex flex-row">
-            <div className="half-card py-3">
-              <Button
-                className="big-icon-button"
-                text="Go back"
-                icon={<ArrowLeft />}
-                onClick={stepBackward}
-              />
+    <div className="confirm-transaction">
+      <div className="confirm-transaction__header">
+        <span className="confirm-transaction__eyebrow">Final review</span>
+        <h2 className="confirm-transaction__title">Confirm transaction</h2>
+        <p className="confirm-transaction__subtitle">
+          Verify the amount, fee, and destination before broadcasting.
+        </p>
+      </div>
+
+      <div className="confirm-transaction__body">
+        <section className="confirm-transaction__summary">
+          <div className="confirm-transaction__summary-row confirm-transaction__summary-row--total">
+            <span className="confirm-transaction__amount-label">Total to spend</span>
+            <span className="confirm-transaction__amount-value">
+              {toLongMINA(totalAmount)} MINA
+            </span>
+          </div>
+          <div className="confirm-transaction__summary-grid">
+            <div className="confirm-transaction__summary-card">
+              <span className="confirm-transaction__amount-label">Amount</span>
+              <span className="confirm-transaction__amount-value">{toLongMINA(amount)} MINA</span>
             </div>
-            <div className="half-card py-3">
-              <Button
-                onClick={sendTransaction}
-                text="Confirm"
-                style="primary"
-                icon={<ArrowRight />}
-                appendIcon
-              />
+            <div className="confirm-transaction__summary-card">
+              <span className="confirm-transaction__amount-label">Network fee</span>
+              <span className="confirm-transaction__amount-value">{toLongMINA(fee)} MINA</span>
             </div>
           </div>
-        </div>
+        </section>
+
+        <section className="confirm-transaction__recipient">
+          <span className="confirm-transaction__section-label">Recipient</span>
+          <div className="confirm-transaction__recipient-card">
+            <div className="confirm-transaction__route">
+              <span className="confirm-transaction__route-label">To</span>
+              <span
+                className="confirm-transaction__route-value"
+                title={receiverAddress}
+              >
+                {trimMiddle(receiverAddress, 32)}
+                <div className="confirm-transaction__avatar">
+                  <Avatar
+                    address={receiverAddress}
+                    size={32}
+                  />
+                </div>
+              </span>
+            </div>
+            <div className="confirm-transaction__route confirm-transaction__route-border">
+              <span className="confirm-transaction__route-label">From</span>
+              <span
+                className="confirm-transaction__route-value"
+                title={walletAddress}
+              >
+                {trimMiddle(walletAddress, 32)}
+                <div className="confirm-transaction__avatar">
+                  <Avatar
+                    address={walletAddress}
+                    size={32}
+                  />
+                </div>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {memo && (
+          <section className="confirm-transaction__memo">
+            <span className="confirm-transaction__section-label">Memo</span>
+            <p className="confirm-transaction__memo-text">{memo}</p>
+          </section>
+        )}
+      </div>
+
+      <div className="confirm-transaction__actions">
+        <Button
+          className="confirm-transaction__back"
+          style="no-style"
+          onClick={stepBackward}
+          disabled={isDisabled}
+          icon={<ArrowLeft size={16} />}
+          text="Back"
+        />
+        <Button
+          style="primary"
+          onClick={handleConfirm}
+          disabled={isDisabled}
+          loading={isConfirming}
+          icon={!isConfirming ? <ArrowRight size={16} /> : undefined}
+          appendIcon
+          text={isConfirming ? 'Confirming...' : 'Confirm'}
+        />
       </div>
     </div>
   );

@@ -38,26 +38,25 @@ const SplashScreen = ({toggleLoader}: IProps) => {
         const isUsingMnemonic =
           privateKey.trim().split(' ').length === 12 || privateKey.trim().split(' ').length === 24;
         setPassphrase(isUsingMnemonic);
-        const success = await storeSession(
-          derivedAccount.publicKey,
-          +id,
-          false,
-          0,
-          isUsingMnemonic,
-        );
+        await storeSession({
+          address: derivedAccount.publicKey,
+          id: +id,
+          ledger: false,
+          ledgerAccount: 0,
+          mnemonic: isUsingMnemonic,
+          accountNumber: 0,
+        });
         updateWallet({
           address: derivedAccount.publicKey,
-          id,
+          id: +id,
           ledger: false,
           ledgerAccount: 0,
           mnemonic: isUsingMnemonic,
           accountNumber: 0,
           isAuthenticated: true,
         });
-        if (success) {
-          navigate('/overview');
-          toggleLoader(false);
-        }
+        navigate('/overview');
+        toggleLoader(false);
       }
     }
     toggleLoader(true);

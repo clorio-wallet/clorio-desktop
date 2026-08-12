@@ -1,7 +1,5 @@
 import {useState, useEffect} from 'react';
-import Hoc from '../UI/Hoc';
 import Input from '../UI/input/Input';
-import {Row, Col} from 'react-bootstrap';
 import Button from '../UI/Button';
 import LedgerGetAddress from './LedgerGetAddress';
 import HelpHint from '../UI/HelpHint';
@@ -14,7 +12,7 @@ import {
 import LedgerIncompatible from './LedgerIncopatible';
 import LedgerSearch from './LedgerSearch';
 import ReactTooltip from 'react-tooltip';
-import {ArrowLeft, ArrowRight} from 'react-feather';
+import {ArrowLeft, ArrowRight, CheckCircle} from 'react-feather';
 import {isMinaAppOpen} from '/@/tools/ledger/ledger';
 
 interface IProps {
@@ -29,10 +27,6 @@ const LedgerConnect = (props: IProps) => {
   const [proceedToLedger, setProceedToLedger] = useState<boolean>(false);
   const [browserIncompatible, setBrowserIncompatible] = useState<boolean>(false);
 
-  /**
-   * On component load check for the Ledger Mina app on the connected Ledger
-   * On component dismount clear the time interval
-   */
   useEffect(() => {
     const timerCheck = setInterval(() => checkLedgerMinaAppOpen(), IS_LEDGER_OPEN_TIME_DELAY);
     return () => {
@@ -40,33 +34,23 @@ const LedgerConnect = (props: IProps) => {
     };
   }, []);
 
-  /**
-   * Check if Ledger Mina app is open on the connected Ledger
-   */
   const checkLedgerMinaAppOpen = async () => {
     try {
       const open = await isMinaAppOpen();
       setIsAvailable(open);
-    } catch (e) {
+    } catch (e: any) {
       setIsAvailable(false);
-      if (e.message.includes('not supported')) {
+      if (e.message?.includes('not supported')) {
         setBrowserIncompatible(true);
       }
     }
   };
 
-  /**
-   * Set account number inside the component state
-   * @param event input text
-   */
   const accountNumberHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
     const number = +event.target.value || MINIMUM_LEDGER_ACCOUNT_NUMBER;
     setAccountNumber(number);
   };
 
-  /**
-   * Check if the selected account number is between the minimum and the maximum
-   */
   const verifyAccountNumber = () => {
     if (
       +accountNumber >= MINIMUM_LEDGER_ACCOUNT_NUMBER &&
@@ -80,56 +64,59 @@ const LedgerConnect = (props: IProps) => {
     }
   };
 
-  const customAccountQuestion = (
-    <div>
-      <Button
-        className="link-button mx-auto"
-        text="Click here to select a custom account"
-        onClick={() => setCustomAccount(true)}
-      />
-    </div>
-  );
-
-  const customAccountInput = (
-    <div>
-      <h6 className="full-width-align-center my-2">
-        Please select an account number{' '}
-        <HelpHint hint="Default account number is 0. If you have created your wallet with another account index, change it here.<br/> Only change this number if you know what you are doing." />
-      </h6>
-      <div className="mx-auto w-50 my-4">
-        <Input
-          type="number"
-          value={accountNumber}
-          inputHandler={accountNumberHandler}
-        />
-      </div>
-      <ReactTooltip multiline />
-    </div>
-  );
-
   const renderAccountNumberSelect = (
-    <div>
-      <div className="w-100">
-        <div className="flex flex-col flex-vertical-center">
-          <h1>Login</h1>
-          <p className="text-center mt-1">Connect now your Ledger wallet and open the Mina app</p>
-          <div className="divider w-100" />
-        </div>
+    <div className="ledger-page animate__animated animate__fadeIn">
+      {/* ── Header ── */}
+      <div className="oi-header">
+        <h1 className="oi-title">Ledger Connected</h1>
+        <p className="oi-description">
+          Please select your account number to continue. Default is 0.
+        </p>
       </div>
-      <h6 className="full-width-align-center">✅ Ledger connected</h6>
-      <div className="v-spacer" />
-      {customAccount ? customAccountInput : customAccountQuestion}
-      <div className="v-spacer" />
-      <Row>
-        <Col xs={6}>
+
+      <div className="ledger-connection-status mt-4">
+        <CheckCircle width={18} height={18} />
+        Ledger device detected
+      </div>
+
+      <div className="mx-auto w-100 max-width-320 my-5">
+        {customAccount ? (
+          <div className="animate__animated animate__fadeInUp">
+            <h6 className="full-width-align-center my-2 text-white opacity-80 flex-center gap-2">
+              Select account number{' '}
+              <HelpHint hint="Default account number is 0. If you have created your wallet with another account index, change it here.<br/> Only change this number if you know what you are doing." />
+            </h6>
+            <div className="mt-4">
+              <Input
+                type="number"
+                value={accountNumber}
+                inputHandler={accountNumberHandler}
+              />
+            </div>
+            <ReactTooltip multiline />
+          </div>
+        ) : (
+          <div className="ledger-custom-account">
+             <button 
+              className="ledger-custom-account-btn"
+              onClick={() => setCustomAccount(true)}
+            >
+              Select a custom account index
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="oi-footer-row mt-auto w-100">
+        <div className="oi-actions oi-actions--wide mx-auto">
           <Button
-            className="big-icon-button"
+            className="oi-back"
+            text="Back"
             icon={<ArrowLeft />}
-            text="Go back"
             link="/login-selection"
+            style="quiet"
+            disableHoverStyle
           />
-        </Col>
-        <Col xs={6}>
           <Button
             onClick={verifyAccountNumber}
             text="Continue"
@@ -137,8 +124,8 @@ const LedgerConnect = (props: IProps) => {
             icon={<ArrowRight />}
             appendIcon
           />
-        </Col>
-      </Row>
+        </div>
+      </div>
     </div>
   );
 
@@ -151,14 +138,18 @@ const LedgerConnect = (props: IProps) => {
     );
   }
 
-  const isAvailableRender = isAvailable ? renderAccountNumberSelect : <LedgerSearch />;
+  const content = browserIncompatible ? (
+    <LedgerIncompatible />
+  ) : isAvailable ? (
+    renderAccountNumberSelect
+  ) : (
+    <LedgerSearch />
+  );
 
   return (
-    <Hoc className="full-screen-container-center">
-      <div className="glass-card p-5 ">
-        {browserIncompatible ? <LedgerIncompatible /> : isAvailableRender}
-      </div>
-    </Hoc>
+    <div className="w-100 flex-center">
+      {content}
+    </div>
   );
 };
 

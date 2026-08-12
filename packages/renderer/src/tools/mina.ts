@@ -6,7 +6,7 @@ import * as bs58check from 'bs58check';
 // @ts-ignore
 import {MINA_COIN_INDEX} from './const';
 import Client from 'mina-signer';
-import isElectron from 'is-electron';
+import {isElectron} from './environment';
 
 export const client = async () => {
   const network =

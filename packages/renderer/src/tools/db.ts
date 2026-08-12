@@ -1,126 +1,106 @@
-import Datastore from 'nedb-promises';
-import type {INodeInfo} from '../types/NetworkData';
-import type {IWalletData} from '../types/WalletData';
+/**
+ * db.ts
+ *
+ * Re-exports session helpers from services/session.ts (synchronous,
+ * sessionStorage-backed) and keeps the localStorage account helpers.
+ *
+ * nedb / nedb-promises have been removed entirely. All session state that was
+ * previously stored in an in-memory nedb Datastore is now stored in
+ * sessionStorage so that it is automatically cleared when the tab/window is
+ * closed — the correct security behaviour for a wallet.
+ *
+ * Call-site compatibility notes
+ * ─────────────────────────────
+ * • storeSession / readSession / clearSession / updateUser are now synchronous.
+ *   Any callers that previously awaited them will continue to work because
+ *   await on a non-Promise value is a no-op.
+ * • setPassphrase(bool) → setPassphraseFlag(bool)  (re-exported under both
+ *   names for a smooth transition; prefer the new name in new code).
+ * • getPassphrase() used to return the raw boolean from nedb; it now delegates
+ *   to getPassphraseFlag() and returns the same boolean (no longer async).
+ * • storeNetworkData / readNetworkData were nedb-only and had no callers after
+ *   B2; they are intentionally not re-implemented.
+ * • findAll() had no callers and is removed.
+ */
 
-const db = Datastore.create();
+// ---------------------------------------------------------------------------
+// Re-export the new session API (synchronous, sessionStorage-backed)
+// ---------------------------------------------------------------------------
 
-export const storeSession = async (
-  address: string,
-  id: number,
-  isLedgerEnabled: boolean,
-  ledgerAccount = 0,
-  isUsingMnemonic: boolean,
-  accountNumber = 0,
-) => {
-  await db.find({type: 'wallet'});
-  await db.remove({type: 'wallet'}, {multi: true});
+export {
+  storeSession,
+  readSession,
+  clearSession,
+  updateUser,
+  setPassphraseFlag,
+  getPassphraseFlag,
+} from '../services/session';
 
-  const wallet = {
-    type: 'wallet',
-    address: address,
-    id: id,
-    ledger: isLedgerEnabled || false,
-    ledgerAccount,
-    mnemonic: isUsingMnemonic,
-    accountNumber,
-  };
-  return await db.insert(wallet);
-};
+// Legacy alias — keeps old call sites (`setPassphrase(bool)`) compiling.
+export {setPassphraseFlag as setPassphrase} from '../services/session';
 
-export const findAll = () => {
-  return db.find({});
-};
+/**
+ * Legacy alias for getPassphraseFlag.
+ * Previously returned `undefined | { passphrase: boolean }` from nedb;
+ * now returns `boolean` directly.  The only callers checked the truthiness
+ * of the result and read `.passphrase`, so returning the boolean is a safe
+ * simplification.
+ */
+export {getPassphraseFlag as getPassphrase} from '../services/session';
 
-export const storeNetworkData = async (networkData: INodeInfo) => {
-  const network = {
-    type: 'network',
-    ...networkData,
-  };
-  return db.insert(network);
-};
+// ---------------------------------------------------------------------------
+// localStorage account helpers (unchanged)
+// ---------------------------------------------------------------------------
 
-export const readNetworkData = async () => {
-  return db.findOne<INodeInfo>({type: 'network'});
-};
-
-export const readSession = async () => {
-  return db.findOne<IWalletData>({type: 'wallet'});
-};
-
-export const clearSession = async () => {
-  sessionStorage.removeItem('PASSPHRASE');
-  await db.remove({type: 'PASSPHRASE'}, {multi: true});
-  await db.remove({type: 'wallet'}, {multi: true});
-};
-
-export const updateUser = async (address: string, id: number) => {
-  let walletData = await readSession();
-  if (walletData?.ledger === undefined) {
-    walletData = await readSession();
-  }
-  await db.remove({type: 'wallet'}, {multi: true});
-  const wallet = {
-    type: 'wallet',
-    address: address,
-    id: id,
-    ledger: walletData?.ledger || false,
-  };
-  await db.insert(wallet);
-};
-
-export const getPassphrase = async () => {
-  const storedPassphrase = await db.findOne({type: 'PASSPHRASE'});
-  if (storedPassphrase) {
-    return storedPassphrase.passphrase;
-  }
-  return undefined;
-};
-
-// TODO: Change name to "isUsingMnemonic", return to sessionStorage
-export const setPassphrase = async (passphrase: boolean) => {
-  return await db.insert({type: 'PASSPHRASE', passphrase});
-};
-// sessionStorage.setItem('PASSPHRASE', passphrase);
-
-export const pushAccount = (account: {address: string; accountId: number}) => {
-  const storedData = JSON.parse(localStorage.getItem('walletAccounts') || '[]');
+export const pushAccount = (account: {address: string; accountId: number}): void => {
+  const storedData: {address: string; accountId: number}[] = JSON.parse(
+    localStorage.getItem('walletAccounts') ?? '[]',
+  );
   storedData.push(account);
   localStorage.setItem('walletAccounts', JSON.stringify(storedData));
 };
 
-export const storeAccounts = (accounts: {address: string; accountId: number}[]) => {
+export const storeAccounts = (accounts: {address: string; accountId: number}[]): void => {
   localStorage.setItem('walletAccounts', JSON.stringify(accounts));
 };
 
 export const getAllAccounts = (): {address: string; accountId: number}[] => {
   const storedData = localStorage.getItem('walletAccounts');
-  return storedData ? JSON.parse(storedData) : [];
+  return storedData ? (JSON.parse(storedData) as {address: string; accountId: number}[]) : [];
 };
 
-export const removeAccountById = (accountId: number) => {
-  const storedData = JSON.parse(localStorage.getItem('walletAccounts') || '[]');
-  const updatedAccounts = storedData.filter(account => account.accountId !== accountId);
-  localStorage.setItem('walletAccounts', JSON.stringify(updatedAccounts));
+export const removeAccountById = (accountId: number): void => {
+  const storedData: {address: string; accountId: number}[] = JSON.parse(
+    localStorage.getItem('walletAccounts') ?? '[]',
+  );
+  const updated = storedData.filter(a => a.accountId !== accountId);
+  localStorage.setItem('walletAccounts', JSON.stringify(updated));
 };
 
-export const removeAccountByAddress = (address: string) => {
-  const storedData = JSON.parse(localStorage.getItem('walletAccounts') || '[]');
-  const updatedAccounts = storedData.filter(account => account.address !== address);
-  localStorage.setItem('walletAccounts', JSON.stringify(updatedAccounts));
+export const removeAccountByAddress = (address: string): void => {
+  const storedData: {address: string; accountId: number}[] = JSON.parse(
+    localStorage.getItem('walletAccounts') ?? '[]',
+  );
+  const updated = storedData.filter(a => a.address !== address);
+  localStorage.setItem('walletAccounts', JSON.stringify(updated));
 };
 
 export const getAccountById = (accountId: number): {address: string; accountId: number} | null => {
-  const storedData = JSON.parse(localStorage.getItem('walletAccounts') || '[]');
-  return storedData.find(account => account.accountId === accountId) || null;
+  const storedData: {address: string; accountId: number}[] = JSON.parse(
+    localStorage.getItem('walletAccounts') ?? '[]',
+  );
+  return storedData.find(a => a.accountId === accountId) ?? null;
 };
 
 export const getAccountByAddress = (
   address: string,
 ): {address: string; accountId: number} | null => {
-  const storedData = JSON.parse(localStorage.getItem('walletAccounts') || '[]');
-  return storedData.find(account => account.address === address) || null;
+  const storedData: {address: string; accountId: number}[] = JSON.parse(
+    localStorage.getItem('walletAccounts') ?? '[]',
+  );
+  return storedData.find(a => a.address === address) ?? null;
 };
 
-export const clearAllAccounts = () => {
+export const clearAllAccounts = (): void => {
   localStorage.removeItem('walletAccounts');
 };

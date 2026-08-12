@@ -23,8 +23,10 @@ export interface SignedTransaction {
 
 export interface IpcBridge {
   on: (eventName: string, callback: (event: any, data: any) => void) => void;
-  off: (eventName: string) => void;
+  off: (eventName: string, callback: (event: any, data: any) => void) => void;
+  removeAllListeners: (eventName: string) => void;
   send: (eventName: string, data: string) => void;
+  invoke: (eventName: string, data?: unknown) => Promise<unknown>;
   listenerCount: (eventName: string) => number;
 }
 

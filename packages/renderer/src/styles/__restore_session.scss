@@ -1,0 +1,210 @@
+/* ═══════════════════════════════════════════════════════
+   RestoreSession — Unlock Screen (Compact)
+   ═══════════════════════════════════════════════════════ */
+
+.restore-session {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #0a0a0f;
+}
+
+.restore-session-card {
+  width: 100%;
+  max-width: 720px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(193, 151, 255, 0.5) 50%, transparent 100%);
+  }
+}
+
+.restore-session-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* ── Hero Section (Left) ── */
+.restore-session-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 24px;
+  background: linear-gradient(135deg, rgba(193, 151, 255, 0.06) 0%, rgba(158, 140, 255, 0.02) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.restore-session-hero__logo {
+  margin-bottom: 12px;
+}
+
+.restore-session-hero__tagline {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+  max-width: 200px;
+  text-align: center;
+}
+
+/* ── Form Section (Right) ── */
+.restore-session-form {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px;
+}
+
+.restore-session-form__title {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.restore-session-form__input {
+  margin-bottom: 12px;
+}
+
+.restore-session-form__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.restore-session-form__actions > * {
+  flex: 1;
+}
+
+.restore-session-footer {
+  padding: 12px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  background: rgba(0, 0, 0, 0.15);
+  min-height: 90px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Responsive — Tablet
+   ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .restore-session {
+    padding: 16px;
+    align-items: flex-start;
+    padding-top: 24px;
+  }
+
+  .restore-session-card {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .restore-session-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .restore-session-hero {
+    padding: 24px 20px;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .restore-session-hero__logo {
+    margin-bottom: 10px;
+  }
+
+  .restore-session-hero__tagline {
+    font-size: 11px;
+  }
+
+  .restore-session-form {
+    padding: 20px 20px;
+  }
+
+  .restore-session-form__title {
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+
+  .restore-session-form__actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+    padding-top: 12px;
+  }
+
+  .restore-session-footer {
+    padding: 10px 20px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Responsive — Mobile Small
+   ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 400px) {
+  .restore-session {
+    padding: 12px;
+    padding-top: 16px;
+  }
+
+  .restore-session-card {
+    border-radius: 10px;
+  }
+
+  .restore-session-hero {
+    padding: 20px 16px;
+  }
+
+  .restore-session-hero__tagline {
+    font-size: 11px;
+  }
+
+  .restore-session-form {
+    padding: 16px 16px;
+  }
+
+  .restore-session-form__title {
+    font-size: 11px;
+  }
+
+  .restore-session-footer {
+    padding: 8px 16px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Touch Optimization
+   ═══════════════════════════════════════════════════════ */
+
+@media (hover: none) and (pointer: coarse) {
+  .restore-session-form__actions button {
+    min-height: 44px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Reduced Motion
+   ═══════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .restore-session-card {
+    transition: none;
+  }
+}

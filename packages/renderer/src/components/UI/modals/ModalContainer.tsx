@@ -1,5 +1,5 @@
+import {memo, useCallback} from 'react';
 import {X} from 'react-feather';
-import Hoc from '../Hoc';
 
 interface IProps {
   close?: () => void;
@@ -9,33 +9,48 @@ interface IProps {
   closeOnBackgroundClick?: boolean;
 }
 
-export const ModalContainer = ({
+export const ModalContainer = memo(function ModalContainer({
   close,
   children,
   show,
   className = '',
   closeOnBackgroundClick = true,
-}: IProps) => {
-  return show ? (
-    <Hoc className="mx-auto first-place  animate__animated animate__fadeIn modal-wrapper">
+}: IProps) {
+  const handleBackdropClick = useCallback(() => {
+    if (closeOnBackgroundClick && close) {
+      close();
+    }
+  }, [closeOnBackgroundClick, close]);
+
+  if (!show) {
+    return null;
+  }
+
+  return (
+    <div
+      className="modal-wrapper"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
       <div
-        className="modal-background "
-        onClick={closeOnBackgroundClick ? close : () => null}
+        className="modal-background"
+        onClick={handleBackdropClick}
+        aria-hidden="true"
       />
-      <div className={`glass-card px-5 py-5 z-100 modal-bg mx-5 ${className}`}>
+      <div className={`modal-content ${className}`}>
         {close && (
-          <div
-            className="modal-close-button cursor-pointer"
+          <button
+            type="button"
+            className="modal-close-button"
             onClick={close}
+            aria-label="Close modal"
           >
-            {' '}
-            <X />
-          </div>
+            <X size={20} />
+          </button>
         )}
         {children}
       </div>
-    </Hoc>
-  ) : (
-    <></>
+    </div>
   );
-};
+});

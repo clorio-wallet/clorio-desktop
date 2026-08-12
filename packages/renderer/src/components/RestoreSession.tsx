@@ -1,12 +1,12 @@
 import Logo from './UI/logo/Logo';
 import Footer from './UI/Footer';
 import {useEffect, useState} from 'react';
-import Input from './UI/input/Input';
 import {ArrowRight} from 'react-feather';
 import Button from './UI/Button';
+import TextField from './UI/input/TextField';
+import {ModalContainer, ConfirmWalletReset} from './UI/modals';
 import useSecureStorage from '../hooks/useSecureStorage';
 import {toast} from 'react-toastify';
-import {Col} from 'react-bootstrap';
 import {clearSession} from '../tools';
 import {useNavigate} from 'react-router-dom';
 import {useSetRecoilState} from 'recoil';
@@ -15,12 +15,11 @@ import {initialWalletState} from '../store/wallet';
 
 export default function RestoreSession({onLogin}: {onLogin: (privateKey: string) => void}) {
   const [password, setPassword] = useState('');
+  const [showResetModal, setShowResetModal] = useState(false);
   const {decryptData, clearData} = useSecureStorage();
   const navigate = useNavigate();
-  // const {updateWallet} = useWallet();
   const updateWallet = useSetRecoilState(walletState);
   const setConfig = useSetRecoilState(configState);
-
 
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
@@ -45,10 +44,10 @@ export default function RestoreSession({onLogin}: {onLogin: (privateKey: string)
           isLocked: false,
         }));
       } else {
-        toast.error('Wrong password');
+        toast.error('Incorrect password. Please try again.');
       }
-    } catch (error) {
-      toast.error('Wrong password');
+    } catch {
+      toast.error('Incorrect password. Please try again.');
     }
   };
 
@@ -71,58 +70,65 @@ export default function RestoreSession({onLogin}: {onLogin: (privateKey: string)
   const disableButton = !passwordRegex.test(password);
 
   return (
-    <div className="full-screen-container-center">
-      <div className="homepage-card glass-card flex md-flex-col">
-        <div className="">
-          <div className="half-card hero-banner mx-auto">
-            <div className="flex flex-col">
+    <div className="restore-session">
+      <div className="restore-session-card">
+        <div className="restore-session-layout">
+          <section className="restore-session-hero">
+            <div className="restore-session-hero__logo">
               <Logo big />
-              <p className="text-center mt-3">Access the power of the Mina Protocol Blockchain.</p>
             </div>
-          </div>
-          <div className="v-spacer" />
-          <div className="half-card flex flex-col w-100 h-auto">
-            <p className="text-center mt-3">Insert your password to restore the session</p>
-            <Input
-              type="text"
-              hidden
-              value={password}
-              inputHandler={e => {
-                setPassword(e.target.value);
-              }}
-            />
-            <div className="v-spacer" />
-            <div className="flex flex-row sm-flex-col sm-flex-wrap-reverse gap-4">
-              <Col
-                xs={12}
-                sm={6}
-              >
-                <Button
-                  className="big-icon-button"
-                  text="Logout"
-                  onClick={onLogout}
-                />
-              </Col>
-              <Col
-                xs={12}
-                sm={6}
-              >
-                <Button
-                  onClick={onSubmitHandler}
-                  text="Confirm"
-                  style="primary"
-                  icon={<ArrowRight />}
-                  disabled={disableButton}
-                  appendIcon
-                />
-              </Col>
+            <p className="restore-session-hero__tagline">
+              Access the power of the Mina Protocol Blockchain.
+            </p>
+          </section>
+
+          <section className="restore-session-form">
+            <h2 className="restore-session-form__title">
+              Enter your password to unlock your wallet
+            </h2>
+
+            <div className="restore-session-form__input">
+              <TextField
+                type="text"
+                hidden
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Password"
+              />
             </div>
-          </div>
-          <div className="mt-4">
-            <Footer />
-          </div>
+
+            <div className="restore-session-form__actions">
+              <Button
+                className="secondary"
+                text="Use different wallet"
+                onClick={() => setShowResetModal(true)}
+              />
+              <Button
+                onClick={onSubmitHandler}
+                text="Unlock"
+                style="primary"
+                icon={<ArrowRight />}
+                appendIcon
+                disabled={disableButton}
+              />
+            </div>
+          </section>
         </div>
+
+        <footer className="restore-session-footer">
+          <Footer />
+        </footer>
       </div>
+
+      <ModalContainer
+        show={showResetModal}
+        close={() => setShowResetModal(false)}
+      >
+        <ConfirmWalletReset
+          confirmReset={onLogout}
+          closeModal={() => setShowResetModal(false)}
+        />
+      </ModalContainer>
     </div>
   );
 }

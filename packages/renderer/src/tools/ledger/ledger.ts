@@ -1,5 +1,5 @@
 /* eslint-disable global-require */
-import isElectron from 'is-electron';
+import {isElectron} from '../environment';
 import type {ITransactionData} from '../../types/TransactionData';
 /* eslint-disable no-control-regex */
 import {feeOrDefault} from '../fees';

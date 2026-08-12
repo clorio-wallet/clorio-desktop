@@ -39,7 +39,7 @@ export const getHDpath = (account = 0) => {
 
 const reverseBytes = (bytes: any) => {
   const uint8 = new Uint8Array(bytes);
-  const reversedBytes = new Buffer(uint8.reverse());
+  const reversedBytes = Buffer.from(uint8.reverse());
   return reversedBytes;
 };
 

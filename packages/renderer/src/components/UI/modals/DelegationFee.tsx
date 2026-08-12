@@ -27,18 +27,12 @@ export const DelegationFee = ({proceedHandler, fees, closeModal}: IProps) => {
   const fastFee = feeOrDefault(fees?.estimatedFee?.txFees?.fast || 0);
   const [fee, setFee] = useState<number>(feeOrDefault(averageFee));
   const [highFeeWarning, setHighFeeWarning] = useState<boolean>(false);
-
-  /**
-   * If the selected fee is less than the minimum show an error alert, otherwise proceed
-   */
   const proceedButtonHandler = (acceptWarning?: boolean) => {
-    // Check if the fee is higher than the 2 Mina threshold
     setHighFeeWarning(toNanoMINA(fee) >= DELEGATION_FEE_THRESHOLD);
     if (toNanoMINA(fee) >= DELEGATION_FEE_THRESHOLD && !acceptWarning) {
       return;
     }
     if (feeGreaterThanMinimum(fee)) {
-      // Block the user if the fee is more than 2 Mina and the user did not agree with the warning
       if (highFeeWarning && !acceptWarning) {
         return;
       }
@@ -90,27 +84,27 @@ export const DelegationFee = ({proceedHandler, fees, closeModal}: IProps) => {
   ) : (
     <div className="min-width-500">
       <div className="w-100">
-        <div className="flex flex-col flex-vertical-center">
+        <div className="flex flex-col ">
           <h1 className="mb-0">Insert a Fee </h1>
-          <p className="text-center mt-1 mb-1">Select a fee for the delegation transaction</p>
+          <p className="mt-1 mb-1">Select a fee for the delegation transaction</p>
           <div className="divider w-100" />
         </div>
       </div>
-      <div className="w-75 mx-auto">
+      <div className="full-width mx-auto">
         <div className="flex flex-row justify-between">
           <div className="align-left mt-1 mb-2 label">
             <strong>Fee</strong>
           </div>
           <div className="fee-label flex flex-row ">
             <Button
-              className="link-button custom-delegate-button purple-text align-end  no-padding"
               text="Avg"
               onClick={() => setFee(averageFee)}
+              style="quiet"
             />
             <Button
-              className="link-button custom-delegate-button purple-text align-end  no-padding"
               text="Fast"
               onClick={() => setFee(fastFee)}
+              style="quiet"
             />
           </div>
         </div>
@@ -123,10 +117,10 @@ export const DelegationFee = ({proceedHandler, fees, closeModal}: IProps) => {
         <Row>
           <Col xs={6}>
             <Button
-              className="big-icon-button"
               icon={<ArrowLeft />}
               text="Cancel"
               onClick={closeModal}
+              style="quiet"
             />
           </Col>
           <Col xs={6}>

@@ -8,6 +8,7 @@ export * from './ledgerLogin/LedgerLoader';
 export * from './NewsBanner';
 export * from './ProgressBar';
 export * from './Spinner';
+export * from './Typography';
 export * from './input/Input';
 export * from './logo/Logo';
 export * from './pagination/Pagination';

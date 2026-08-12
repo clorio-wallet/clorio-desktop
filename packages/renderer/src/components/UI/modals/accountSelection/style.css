@@ -1,22 +1,375 @@
-.account-dropdown-item {
+/* MnemonicAccountSelection - Modern Card-Based Design */
+
+.mnemonic-account-container {
   display: flex;
-  justify-content: start;
-  flex-direction: row;
-  gap: 4px;
-  align-items: center;
-}
-
-a.dropdown-item:hover {
-  background: #f9f9f93f;
-}
-
-a.dropdown-item {
-  color: white !important;
-}
-
-.account-dropdown-item>p {
+  flex-direction: column;
+  gap: 16px;
   width: 100%;
+}
+
+.mnemonic-account-list {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Custom scrollbar */
+.mnemonic-account-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mnemonic-account-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.mnemonic-account-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.mnemonic-account-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Account Card */
+.mnemonic-account-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.mnemonic-account-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.mnemonic-account-card--current {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.mnemonic-account-card--current:hover {
+  background: rgba(102, 126, 234, 0.15);
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.mnemonic-account-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mnemonic-account-avatar {
+  flex-shrink: 0;
+}
+
+.mnemonic-account-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mnemonic-account-address {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
   margin: 0;
-  font-size: medium;
-  font-weight: lighter;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+
+.mnemonic-account-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mnemonic-account-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.mnemonic-account-label svg {
+  width: 12px;
+  height: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.mnemonic-account-balance {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4ade80;
+  margin: 0;
+}
+
+.mnemonic-account-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.mnemonic-account-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #4ade80;
+  border-radius: 50%;
+}
+
+.mnemonic-account-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.mnemonic-account-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  color: rgba(239, 68, 68, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mnemonic-account-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+.mnemonic-account-delete svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Add New Account Card */
+.mnemonic-account-add {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.mnemonic-account-add:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.mnemonic-account-add-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background: rgba(102, 126, 234, 0.15);
+  border-radius: 12px;
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.mnemonic-account-add-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mnemonic-account-add-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mnemonic-account-add-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.mnemonic-account-add-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+/* Add Account Form */
+.mnemonic-account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  animation: account-form-slide-in 0.2s ease-out;
+}
+
+@keyframes account-form-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mnemonic-account-form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.mnemonic-account-form-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.mnemonic-account-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mnemonic-account-form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.mnemonic-account-form-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.mnemonic-account-form-input:focus {
+  outline: none;
+  border-color: rgba(102, 126, 234, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mnemonic-account-form-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.mnemonic-account-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.mnemonic-account-form-cancel {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mnemonic-account-form-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.mnemonic-account-form-submit {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mnemonic-account-form-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.mnemonic-account-form-submit:active {
+  transform: translateY(0);
+}
+
+.mnemonic-account-form-submit svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .mnemonic-account-card {
+    padding: 12px;
+  }
+  
+  .mnemonic-account-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  
+  .mnemonic-account-form-actions {
+    flex-direction: column;
+  }
 }

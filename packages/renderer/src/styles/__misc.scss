@@ -113,7 +113,6 @@ a.github-link {
 }
 
 .contentWrapper {
-  // padding: 20px;
   margin: 0px !important;
   max-width: 100% !important;
 }
@@ -525,7 +524,6 @@ a:hover {
   top: 0%;
   left: 0%;
   opacity: 0.7;
-  background-color: black;
   z-index: 4;
 }
 
@@ -547,6 +545,121 @@ a:hover {
 
 .modal-bg {
   background-color: rgba(42, 45, 59, 1) !important;
+}
+
+.modal-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  animation: modal-fade-in 0.15s ease-out;
+
+  @media (max-width: 639px) {
+    padding: var(--space-2);
+    align-items: flex-end;
+  }
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+.modal-content {
+  --bs-modal-bg: #1a1a24;
+  --bs-modal-border-radius: 10px;
+  background-color: #1a1a24 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: min(90vw, 600px);
+  max-height: calc(100vh - var(--space-8));
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: modal-slide-up 0.2s ease-out;
+
+  @media (max-width: 639px) {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: var(--space-5);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    width: 100%;
+    color: var(--color-text);
+    margin: 0 0 var(--space-4);
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: var(--space-4) 0;
+  }
+}
+
+.modal-close-button {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-out;
+  z-index: 1;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #c197ff;
+    outline-offset: 2px;
+  }
 }
 
 .level-zero {
@@ -621,7 +734,6 @@ a:hover {
   max-height: 98vh;
   overflow: -moz-hidden-unscrollable;
   overflow: unset;
-  // height: 90vh;
 }
 
 .stake-row-value {
@@ -864,11 +976,8 @@ tbody {
 
 .modal-close-button {
   text-align: right;
-  margin-top: -20px;
   opacity: 0.7;
   transition: 0.3s;
-  position: relative;
-  top: 20px;
 }
 
 .modal-close-button:hover {
@@ -878,7 +987,6 @@ tbody {
 
 .avatar-icon {
   position: relative;
-  // left: 5px;
   top: 2px;
   border-radius: 100px;
   max-width: 80px !important;
@@ -959,7 +1067,6 @@ tbody {
   border-radius: 59px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  // background: #ffffff;
 }
 ::-webkit-scrollbar-thumb:active {
   background: #000000;
@@ -980,14 +1087,12 @@ tbody {
   background: transparent;
 }
 
-/* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
 }
@@ -995,13 +1100,6 @@ input[type="number"] {
 .pdf-only {
   display: none;
 }
-
-// .sidebar-footer-block {
-//   bottom: 1vh;
-//   height: fit-content;
-//   text-align: center;
-//   position: absolute;
-// }
 
 .big-modal-container {
   width: 70vw;
@@ -1160,7 +1258,6 @@ input[type="number"] {
     visibility: visible;
   }
 
-  // Place
   &.place-top {
     &::before {
       border-left: 10px solid transparent;
@@ -1201,7 +1298,6 @@ input[type="number"] {
     }
   }
 
-  // Wrapping
   .multi-line {
     display: block;
     padding: 2px 0;
@@ -1287,6 +1383,10 @@ input[type="number"] {
   position: relative;
   transition: 0.4s;
   left: 0%;
+}
+
+.small-screen {
+  display: none !important;
 }
 
 @media screen and (max-height: 899px) {
@@ -1413,14 +1513,13 @@ input[type="number"] {
 }
 
 @media screen and (max-width: 698px) {
-  .transaction-form-address-container {
+.transaction-form-address-container {
     width: 80%;
   }
 }
 @media screen and (max-width: 999px) {
   #draggable-bar {
     position: sticky;
-    // height: 2vh;
     display: flex;
     align-items: end;
   }

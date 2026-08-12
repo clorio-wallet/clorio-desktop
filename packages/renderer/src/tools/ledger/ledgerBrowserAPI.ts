@@ -2,7 +2,7 @@
 import Transporter from '@ledgerhq/hw-transport-webhid';
 // @ts-ignore
 import { MinaLedgerJS } from 'mina-ledger-js';
-import isElectron from 'is-electron';
+import {isElectron} from '../environment';
 import type { ILedgerTransaction } from '../../types/LedgerDelegationTransaction';
 
 // Wrapped Browser API for Ledger Devices

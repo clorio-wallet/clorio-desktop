@@ -1,0 +1,139 @@
+.confirm-wallet-reset {
+  min-width: 400px;
+  padding: 32px;
+}
+
+.confirm-wallet-reset__header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.confirm-wallet-reset__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 126, 110, 0.2) 0%, rgba(255, 126, 110, 0.1) 100%);
+  color: #ff7c6e;
+  margin-bottom: 16px;
+}
+
+.confirm-wallet-reset__title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px 0;
+}
+
+.confirm-wallet-reset__subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirm-wallet-reset__warning {
+  background: linear-gradient(135deg, rgba(255, 126, 110, 0.08) 0%, rgba(255, 126, 110, 0.03) 100%);
+  border: 1px solid rgba(255, 126, 110, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.confirm-wallet-reset__warning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff7c6e;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.confirm-wallet-reset__list {
+  margin: 0;
+  padding-left: 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1.8;
+
+  li {
+    margin-bottom: 4px;
+    text-align: left;
+  }
+}
+
+.confirm-wallet-reset__important {
+  background: rgba(255, 126, 110, 0.08);
+  border-left: 3px solid #ff7c6e;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+  text-align: left;
+
+  strong {
+    color: #ff7c6e;
+  }
+}
+
+.confirm-wallet-reset__actions {
+  display: flex;
+  gap: 12px;
+
+  button {
+    flex: 1;
+    min-height: 48px;
+  }
+}
+
+.confirm-wallet-reset__cancel {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+  }
+}
+
+.confirm-wallet-reset__confirm {
+  background: linear-gradient(120deg, #ff7c6e 0%, #ff5252 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 600;
+
+  &:hover {
+    background: linear-gradient(120deg, #ff8a7a 0%, #ff6b66 100%) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .confirm-wallet-reset {
+    min-width: auto;
+    padding: 24px;
+  }
+
+  .confirm-wallet-reset__icon {
+    width: 56px;
+    height: 56px;
+
+    svg {
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .confirm-wallet-reset__title {
+    font-size: 20px;
+  }
+
+  .confirm-wallet-reset__actions {
+    flex-direction: column-reverse;
+  }
+}

@@ -22,7 +22,7 @@ export const PrivateKeyModal = ({
   storedPassphrase ? (
     <div className="min-width-500">
       <div className="w-100">
-        <div className="flex flex-col flex-vertical-center">
+        <div className="flex flex-col ">
           <h1 className="mb-0">Password required</h1>
           <div className="divider w-100" />
         </div>
@@ -35,7 +35,7 @@ export const PrivateKeyModal = ({
   ) : (
     <div className="min-width-500">
       <div className="w-100">
-        <div className="flex flex-col flex-vertical-center">
+        <div className="flex flex-col">
           <h1 className="mb-0">Passphrase or Private key </h1>
           <p className="my-2">To confirm the transaction insert the passphrase or private key</p>
           <div className="divider w-100" />
@@ -51,9 +51,9 @@ export const PrivateKeyModal = ({
       <Row>
         <Col xs={6}>
           <Button
-            className="big-icon-button"
             text="Cancel"
             onClick={closeModal}
+            style="quiet"
           />
         </Col>
         <Col xs={6}>

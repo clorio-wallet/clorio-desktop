@@ -1,17 +1,15 @@
 import {useQuery} from '@apollo/client';
 import {GET_NETWORK} from '../../graphql/query';
-import {storeNetworkData} from '../../tools';
 import type {INetworkData} from '../../types/NetworkData';
 import NetworkSettings from './sidebar/NetworkSettings';
+import OnboardingNetworkSettings from './sidebar/OnboardingNetworkSettings';
 
-const Footer = () => {
-  const {data: network} = useQuery<INetworkData>(GET_NETWORK, {
-    onCompleted: async data => {
-      if (data?.nodeInfo) {
-        await storeNetworkData(data?.nodeInfo);
-      }
-    },
-  });
+interface FooterProps {
+  isOnboarding?: boolean;
+}
+
+const Footer = ({ isOnboarding = true }: FooterProps) => {
+  const {data: network} = useQuery<INetworkData>(GET_NETWORK);
   const renderNetwork = network?.nodeInfo
     ? `${network.nodeInfo.name} | ${network.nodeInfo.network}`
     : 'Network unavailable';
@@ -21,11 +19,18 @@ const Footer = () => {
       ~Clorio is a wallet for Mina Protocol offered by WeStake.Club.
       <br />
       <div>{renderNetwork}</div>
-      <NetworkSettings
-        currentNetwork={renderNetwork}
-        network={network}
-        hideBackup
-      />
+      {isOnboarding ? (
+        <OnboardingNetworkSettings
+          currentNetwork={renderNetwork}
+          network={network}
+        />
+      ) : (
+        <NetworkSettings
+          currentNetwork={renderNetwork}
+          network={network!}
+          hideBackup
+        />
+      )}
     </div>
   );
 };

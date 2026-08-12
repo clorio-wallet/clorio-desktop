@@ -60,9 +60,9 @@ export const transactionQueryRowToTableRow = (transactionRow: ITransactionQueryD
 };
 
 export const formatUrl = (txId: string,url?: string) => {
-  if (url.includes('minascan.io')) {
+  if (url && url.includes('minascan.io')) {
     return `${url}tx/${txId}`;
   } else {
-    return `${url}transaction/${txId}`;
+    return `${url || ''}transaction/${txId}`;
   }
 };

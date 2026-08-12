@@ -1,4 +1,4 @@
-import {Table} from 'react-bootstrap';
+import React, {useMemo} from 'react';
 import Spinner from '../UI/Spinner';
 import {getTotalPages} from '../../tools/utils';
 import {useQuery} from '@apollo/client';
@@ -11,12 +11,14 @@ import type {
   ITransactionTotalQueryResult,
 } from './TransactionsTypes';
 import TransactionRow from './TransactionRow';
+import TransactionCard from './TransactionCard';
 import TransactionsTableError from './TransactionsTableError';
 import {mempoolQueryRowToTableRow, transactionQueryRowToTableRow} from './TransactionsHelper';
 import WalletCreationTransaction from './WalletCreationTransaction';
 import RefetchTransactions from './RefetchTransactions';
 import type {Blacklist} from '../../types/Blacklist';
 import {TRANSACTIONS_TABLE_ITEMS_PER_PAGE} from '/@/tools';
+import './TransactionsTable.scss';
 
 const TransactionsTable = ({
   transactions,
@@ -40,6 +42,93 @@ const TransactionsTable = ({
     fetchPolicy: 'network-only',
   });
 
+  const blacklistAddresses = blacklist?.blacklistedAddresses || [];
+
+  const mempoolCount = mempool?.mempool?.length || 0;
+
+  const mempoolRows = useMemo(
+    () =>
+      mempool?.mempool?.map((row, idx) => {
+        const rowData: ITransactionRowData = mempoolQueryRowToTableRow(row);
+        return (
+          <TransactionRow
+            key={`mempool-tx-${idx}`}
+            rowData={rowData}
+            index={idx}
+            userAddress={userAddress}
+            blacklist={blacklistAddresses}
+            isMempool={true}
+          />
+        );
+      }) || [],
+    [mempool, userAddress, blacklistAddresses],
+  );
+
+  const mempoolCards = useMemo(
+    () =>
+      mempool?.mempool?.map((row, idx) => {
+        const rowData: ITransactionRowData = mempoolQueryRowToTableRow(row);
+        return (
+          <TransactionCard
+            key={`mempool-card-${idx}`}
+            rowData={rowData}
+            index={idx}
+            userAddress={userAddress}
+            blacklist={blacklistAddresses}
+            isMempool={true}
+          />
+        );
+      }) || [],
+    [mempool, userAddress, blacklistAddresses],
+  );
+
+  const txRows = useMemo(
+    () =>
+      transactions?.transactions?.map((row, idx) => {
+        const rowData: ITransactionRowData = transactionQueryRowToTableRow(row);
+        return (
+          <TransactionRow
+            key={`tx-${idx}`}
+            rowData={rowData}
+            index={mempoolCount + idx}
+            userAddress={userAddress}
+            blacklist={blacklistAddresses}
+            isMempool={false}
+          />
+        );
+      }) || [],
+    [transactions, userAddress, blacklistAddresses, mempoolCount],
+  );
+
+  const txCards = useMemo(
+    () =>
+      transactions?.transactions?.map((row, idx) => {
+        const rowData: ITransactionRowData = transactionQueryRowToTableRow(row);
+        return (
+          <TransactionCard
+            key={`tx-card-${idx}`}
+            rowData={rowData}
+            index={mempoolCount + idx}
+            userAddress={userAddress}
+            blacklist={blacklistAddresses}
+            isMempool={false}
+          />
+        );
+      }) || [],
+    [transactions, userAddress, blacklistAddresses, mempoolCount],
+  );
+
+  const walletCreationRow = useMemo(() => {
+    const totalRows = totalData?.transactionsCount?.count || 0;
+    const isLastPage = +page === +getTotalPages(totalRows);
+    if (transactions?.transactions?.length) {
+      if (transactions?.transactions?.length < TRANSACTIONS_TABLE_ITEMS_PER_PAGE || isLastPage) {
+        return WalletCreationTransaction(totalRows + 1);
+      }
+    }
+    return null;
+  }, [transactions, totalData, page]);
+
   if (
     !loading &&
     (error ||
@@ -52,94 +141,51 @@ const TransactionsTable = ({
     return TransactionsTableError(balance, error, refetchData);
   }
 
-  /**
-   * Render table header labels
-   * @returns HTMLElement
-   */
-  const renderTableHeader = () => {
-    return (
-      <tr className="th-background">
-        <th className="th-first-item"></th>
-        <th>ID</th>
-        <th>Date</th>
-        <th>Sender</th>
-        <th>Recipient</th>
-        <th className="th-last-item">Amount</th>
-      </tr>
-    );
-  };
-
-  /**
-   * Render table body content
-   * @returns HTMLElement
-   */
-  const renderTableBody = () => {
-    return (
-      <tbody>
-        {mempool?.mempool?.map((row, index) => {
-          const rowData: ITransactionRowData = mempoolQueryRowToTableRow(row);
-          return TransactionRow(
-            rowData,
-            index,
-            userAddress,
-            blacklist?.blacklistedAddresses || [],
-            true,
-          );
-        })}
-        {transactions?.transactions?.map((row, index) => {
-          const rowData: ITransactionRowData = transactionQueryRowToTableRow(row);
-          return TransactionRow(
-            rowData,
-            index,
-            userAddress,
-            blacklist?.blacklistedAddresses || [],
-            false,
-          );
-        })}
-        {lastTransaction()}
-      </tbody>
-    );
-  };
-
-  /**
-   * If the last page of the table is rendered return an additional transaction row for the wallet creation
-   * @returns HTMLElement
-   */
-  const lastTransaction = () => {
-    const totalRows = totalData?.transactionsCount?.count || 0;
-    const isLastPage = +page === +getTotalPages(totalRows);
-    if (transactions?.transactions?.length) {
-      if (transactions?.transactions?.length < TRANSACTIONS_TABLE_ITEMS_PER_PAGE || isLastPage) {
-        return WalletCreationTransaction(totalRows + 1);
-      }
-    }
-  };
-
   return (
     <div className="glass-card px-4 pt-3 mb-5 pb-3">
-      <div>
-        <Spinner
-          className={'full-width'}
-          show={loading}
-        >
-          <div id="transaction-table">
-            <RefetchTransactions refetch={refetchData} />
-            <ReactTooltip multiline={true} />
-            <Table
-              className="animate__animated animate__fadeIn"
-              id="rwd-table-large"
-            >
-              <thead>{renderTableHeader()}</thead>
-              {renderTableBody()}
-            </Table>
-          </div>
-        </Spinner>
+      <Spinner
+        className={'full-width'}
+        show={loading}
+      >
+        <ReactTooltip multiline={true} />
+        <RefetchTransactions refetch={refetchData} />
+
+        <div className="tx-table-container">
+          <table className="tx-table animate__animated animate__fadeIn">
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col">Transaction</th>
+                <th scope="col">Date</th>
+                <th scope="col">From</th>
+                <th scope="col">To</th>
+                <th
+                  scope="col"
+                  className="text-right"
+                >
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {mempoolRows}
+              {txRows}
+              {walletCreationRow}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="tx-card-list animate__animated animate__fadeIn">
+          {mempoolCards}
+          {txCards}
+        </div>
+
         <Pagination
           page={page}
           setOffset={setOffset}
           total={getTotalPages(totalData?.transactionsCount?.count || 0)}
         />
-      </div>
+      </Spinner>
     </div>
   );
 };

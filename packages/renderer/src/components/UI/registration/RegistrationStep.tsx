@@ -1,17 +1,14 @@
 import {useState} from 'react';
-import {Accordion, Col, useAccordionButton} from 'react-bootstrap';
 import type {IKeypair} from '../../../types/Keypair';
 import {PdfEncryption} from './PdfEncryption';
 import Button from '../Button';
-import isElectron from 'is-electron';
-import {isChrome} from '../../../tools';
-import type {INetworkData} from '../../../types';
-import {ArrowLeft, ArrowRight, FileText} from 'react-feather';
+import {ArrowLeft, ArrowRight, FileText, Copy, Eye, EyeOff} from 'react-feather';
+import {copyToClipboard} from '/@/tools/utils';
+import {toast} from 'react-toastify';
 
 interface IProps {
   keys: IKeypair;
   setValidation: (showValidation: boolean) => void;
-  network?: INetworkData;
   goToNext: () => void;
   goBack: () => void;
 }
@@ -19,139 +16,125 @@ interface IProps {
 const RegisterStep = ({keys, setValidation, goToNext, goBack}: IProps) => {
   const [showEncryptionModal, setShowEncryptionModal] = useState<boolean>(false);
   const [showDetails, setShowDetails] = useState(false);
-  const spaceChar = isElectron() || isChrome ? <>&nbsp;</> : ' ';
 
-  function CustomToggle({eventKey}: {eventKey: string}) {
-    const decoratedOnClick = useAccordionButton(eventKey, () => setShowDetails(!showDetails));
+  const copyMnemonic = () => {
+    if (keys.mnemonic) {
+      copyToClipboard(keys.mnemonic);
+      toast.success('Recovery phrase copied to clipboard', {
+        position: 'bottom-right',
+        autoClose: 2000,
+      });
+    }
+  };
 
-    return (
-      <Button
-        className="font-size-medium purple-text text-right"
-        onClick={decoratedOnClick}
-        appendIcon
-        text={`${!showDetails ? 'Show' : 'Hide'} Private key`}
-      />
-    );
-  }
+  const toggleDetails = () => setShowDetails(!showDetails);
+
   return (
-    <div
-      className={`animate__animated animate__fadeIn glass-card registration-card ${
-        showDetails ? 'py-2 ' : ''
-      }`}
-    >
-      <div>
-        <div id="element-to-print">
-          <div className="v-spacer-big pdf-only" />
-          <div className="v-spacer-big pdf-only" />
-          <div className="w-100">
-            <div className="flex flex-col flex-vertical-center">
-              <h1>Create new wallet</h1>
-              <p className="text-center mt-1">Take a note of your wallet</p>
-              <div className="divider" />
+    <div className="oi-page animate__animated animate__fadeIn">
+      <div className="oi-header">
+        <h1 className="oi-title">Create new wallet</h1>
+        <p className="oi-description">Carefully take note of your 12-word recovery phrase.</p>
+      </div>
+
+      <div className="oi-content-section">
+        <div className="oi-section-header mb-4">
+          <div className="oi-flex-responsive w-full gap-3">
+            <div className="flex items-center gap-3">
+              <span className="oi-section-label">Recovery Phrase</span>
+              <Button
+                style="link"
+                onClick={copyMnemonic}
+                icon={<Copy size={13} />}
+              ></Button>
+            </div>
+
+            <Button
+              className="oi-toggle-details-btn p-0"
+              onClick={toggleDetails}
+              text={`${!showDetails ? 'Show' : 'Hide'} Public & Private Keys`}
+              icon={showDetails ? <EyeOff size={16} /> : <Eye size={16} />}
+              style="no-style"
+            />
+          </div>
+        </div>
+
+        <div className="oi-grid oi-grid--3-col mb-4">
+          {keys.mnemonic?.split(' ').map((word, index) => (
+            <div
+              key={index}
+              className="oi-word-cell oi-word-cell--static"
+            >
+              <span className="oi-word-index">{index + 1}</span>
+              <span className="oi-word-static-text">{word}</span>
+            </div>
+          ))}
+        </div>
+
+        {showDetails && (
+          <div className="oi-card mt-4 p-4 animate__animated animate__fadeIn">
+            <div className="mb-4">
+              <label className="oi-section-label mb-1">Public Key (Address)</label>
+              <div className="oi-word-cell oi-word-cell--full">
+                <span className="oi-word-static-text selectable-text font-mono text-xs">
+                  {keys.publicKey}
+                </span>
+              </div>
+            </div>
+            <div>
+              <label className="oi-section-label mb-1">Private Key</label>
+              <div className="oi-word-cell oi-word-cell--full">
+                <span className="oi-word-static-text selectable-text font-mono text-xs">
+                  {keys.privateKey}
+                </span>
+              </div>
             </div>
           </div>
-          <Accordion>
-            <div className="align-left label mt-2">
-              <div className="lh-10 flex justify-between">
-                <div>
-                  <strong>Passphrase</strong>
-                </div>
-                <div>
-                  <CustomToggle eventKey="0" />
-                </div>
-              </div>
-              <small>
-                Please carefully write down these 12 words and store them in a safe place.
-              </small>
-            </div>
-            <div className="passphrase-box">
-              {keys.mnemonic?.split(' ').map((word, index) => (
-                <div
-                  key={index}
-                  className="inline-block-element word-box align-left"
-                >
-                  <span className="word-index">{index + 1}.</span>
-                  <span className="selectable-text ">
-                    {word}
-                    {index === 11 ? '' : spaceChar}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <Accordion.Collapse
-              role={''}
-              as={'div'}
-              eventKey="0"
-            >
-              <div>
-                <div className="align-left mt-3 mb-2 label">
-                  <strong>Public key</strong>
-                  <br />
-                  <small>This is your address</small>
-                </div>
-                <div
-                  className="wrap-input1 validate-input passphrase-box mb-0"
-                  data-validate="Name is required"
-                >
-                  <h5 className="w-100 pl-3 selectable-text mb-0">{keys.publicKey}</h5>
-                </div>
-                <div className="align-left mt-3 mb-2 label">
-                  <strong>Private key</strong>
-                  <br />
-                  <small>This is your private key</small>
-                </div>
-                <div className="wrap-input1 validate-input passphrase-box">
-                  <h5 className="w-100 pl-3 selectable-text mb-0">{keys.privateKey}</h5>
-                </div>
-              </div>
-            </Accordion.Collapse>
-          </Accordion>
-        </div>
-        <div className="v-spacer hide-small" />
-        <div className="w-100 align-left">
-          This is the only time you will see the private key. <br />
-          Make sure to write down your private key on a secure medium and you safe keep it. <br />
-          If you loose your private key you will not be able to access your funds anymore!
-          <Button
-            className="link-button purple-text px-0 ml-0"
-            onClick={() => setShowEncryptionModal(true)}
-            text={'Download paperwallet in PDF'}
-            icon={<FileText stroke="#c197ff" />}
+        )}
+
+        <div className="oi-security-banner mt-5">
+          <FileText
+            className="oi-security-icon"
+            strokeWidth={1.5}
           />
-        </div>
-        <div className="mt-1 mb-2"></div>
-        <div className="v-spacer hide-small" />
-        <div className="half-width-align-center">
-          <div className="row no-print sm-flex-wrap-reverse button-row justify-center">
-            <Col
-              xs={12}
-              sm={6}
-            >
-              <Button
-                className="big-icon-button"
-                icon={<ArrowLeft />}
-                text="Go back"
-                onClick={goBack}
-              />
-            </Col>
-            <Col
-              xs={12}
-              sm={6}
-            >
-              <Button
-                onClick={() => {
-                  goToNext();
-                  setValidation(true);
-                }}
-                text="Continue"
-                style="primary"
-                icon={<ArrowRight />}
-                appendIcon
-              />
-            </Col>
+          <div className="oi-security-text">
+            <strong>Security First</strong>
+            <p>
+              This is the only time you will see your keys. Write them down offline. If you lose
+              them, you lose access to your funds forever.
+            </p>
+            <Button
+              className="purple-text p-0 font-weight-600 mt-2 hover-underline"
+              onClick={() => setShowEncryptionModal(true)}
+              text={'Download Paper Wallet (PDF)'}
+              style="no-style"
+            />
           </div>
         </div>
       </div>
+
+      <div className="oi-footer-row w-full mt-4">
+        <div className="oi-actions oi-actions--wide mx-auto">
+          <Button
+            className="oi-back"
+            icon={<ArrowLeft />}
+            text="Back"
+            onClick={goBack}
+            style="quiet"
+            disableHoverStyle
+          />
+          <Button
+            onClick={() => {
+              goToNext();
+              setValidation(true);
+            }}
+            text="Continue"
+            style="primary"
+            icon={<ArrowRight />}
+            appendIcon
+          />
+        </div>
+      </div>
+
       {showEncryptionModal && (
         <PdfEncryption
           keypair={keys}

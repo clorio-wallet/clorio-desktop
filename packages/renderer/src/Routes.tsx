@@ -9,7 +9,10 @@ const SignMessage = lazy(() => import('./pages/signMessage/SignMessage'));
 const NotFound = lazy(() => import('./pages/404'));
 const VerifyMessage = lazy(() => import('./pages/VerifyMessage'));
 const Mnemonic = lazy(() => import('./pages/mnemonic/Mnemonic'));
-const LoginSelection = lazy(() => import('./pages/loginSelection/LoginSelection'));
+const OnboardingStart = lazy(() => import('./pages/onboarding/OnboardingStart'));
+const OnboardingCreate = lazy(() => import('./pages/onboarding/OnboardingCreate'));
+const OnboardingImport = lazy(() => import('./pages/onboarding/OnboardingImport'));
+const OnboardingLedger = lazy(() => import('./pages/onboarding/OnboardingLedger'));
 const ZkApps = lazy(() => import('./pages/ZkApps'));
 import {Routes as AppRoutes, Navigate, Route} from 'react-router-dom';
 import Spinner from './components/UI/Spinner';
@@ -43,15 +46,15 @@ const Routes = (props: IRoutesProps) => {
         />
         <Route
           path="/sign-message"
-          element={isAuthenticated ? <SignMessage {...props} /> : <Navigate to="/" />}
+          element={isAuthenticated ? <SignMessage /> : <Navigate to="/" />}
         />
         <Route
           path="/verify-message"
-          element={isAuthenticated ? <VerifyMessage {...props} /> : <Navigate to="/" />}
+          element={isAuthenticated ? <VerifyMessage /> : <Navigate to="/" />}
         />
         <Route
           path="/zkapps"
-          element={isAuthenticated ? <ZkApps {...props} /> : <Navigate to="/" />}
+          element={isAuthenticated ? <ZkApps /> : <Navigate to="/" />}
         />
 
         <Route
@@ -68,13 +71,29 @@ const Routes = (props: IRoutesProps) => {
         />
         <Route
           path="/login-selection"
-          element={!isAuthenticated ? <LoginSelection /> : <Navigate to="/overview" />}
+          element={!isAuthenticated ? <OnboardingStart /> : <Navigate to="/overview" />}
+        />
+        {/* ── New onboarding step pages ── */}
+        <Route
+          path="/onboarding/create"
+          element={!isAuthenticated ? <OnboardingCreate {...props} /> : <Navigate to="/overview" />}
+        />
+        <Route
+          path="/onboarding/import"
+          element={!isAuthenticated ? <OnboardingImport {...props} /> : <Navigate to="/overview" />}
+        />
+        <Route
+          path="/onboarding/ledger"
+          element={!isAuthenticated ? <OnboardingLedger {...props} /> : <Navigate to="/overview" />}
         />
         <Route
           path="/"
           element={!isAuthenticated ? <SplashScreen {...props} /> : <Navigate to="/overview" />}
         />
-        <Route element={<NotFound />} />
+        <Route
+          path="*"
+          element={<NotFound />}
+        />
       </AppRoutes>
     </Suspense>
   );

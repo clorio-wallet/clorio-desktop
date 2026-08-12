@@ -1,9 +1,10 @@
-import {Col, Row} from 'react-bootstrap';
-import {ArrowRight, Repeat} from 'react-feather';
+import {AlertTriangle, ArrowRight, Repeat, Shield} from 'react-feather';
 import Button from '../UI/Button';
 import Input from '../UI/input/Input';
 import Spinner from '../UI/Spinner';
 import PasswordDecrypt from '../PasswordDecrypt';
+import useSecureStorage from '/@/hooks/useSecureStorage';
+import './TransactionAuthentication.scss';
 
 interface IProps {
   isLedgerEnabled?: boolean;
@@ -26,99 +27,137 @@ const TransactionAuthentication = ({
   retryLedgerTransaction,
   storedPassphrase,
 }: IProps) => {
-  if (storedPassphrase) {
+  const {hasEncryptedData} = useSecureStorage();
+  const shouldUsePasswordDecrypt = !!storedPassphrase && hasEncryptedData;
+
+  if (shouldUsePasswordDecrypt) {
     return (
-      <PasswordDecrypt
-        onClose={stepBackward}
-        onSuccess={(passphrase: string) => {
-          confirmPrivateKey(passphrase);
-        }}
-      />
+      <div className="tx-auth tx-auth--password">
+        <div className="tx-auth__header">
+          <span className="tx-auth__eyebrow">Unlock</span>
+          <h3 className="tx-auth__title">Enter your password</h3>
+          <p className="tx-auth__subtitle">
+            Unlock this device to sign the transaction.
+          </p>
+        </div>
+        <div className="tx-auth__panel tx-auth__panel--password">
+          <PasswordDecrypt
+            onClose={stepBackward}
+            onSuccess={(passphrase: string) => {
+              confirmPrivateKey(passphrase);
+            }}
+          />
+        </div>
+      </div>
     );
   }
 
   if (isLedgerEnabled && ledgerError) {
     return (
-      <div className="mx-auto  w-75">
-        <div className="my-4 ">
-          <div className="align-left mt-3 mb-2 label text-center">
-            <strong>Signature failed</strong>
-            <br />
+      <div className="tx-auth">
+        <div className="tx-auth__header">
+          <span className="tx-auth__eyebrow">Ledger</span>
+          <h3 className="tx-auth__title">Signature failed</h3>
+          <p className="tx-auth__subtitle">
+            Check your Ledger and try again.
+          </p>
+        </div>
+        <div className="tx-auth__panel tx-auth__panel--error">
+          <div className="tx-auth__status-icon">
+            <AlertTriangle size={18} />
           </div>
-          <p className="mx-auto mb-5">The signature process through the ledger failed</p>
-          <Row>
-            <Col xs={6}>
-              <Button
-                className="big-icon-button"
-                text="Go back"
-                onClick={stepBackward}
-              />
-            </Col>
-            <Col xs={6}>
-              <Button
-                text="Retry"
-                style="primary"
-                icon={<Repeat />}
-                appendIcon
-                onClick={retryLedgerTransaction}
-              />
-            </Col>
-          </Row>
+          <div className="tx-auth__status-copy">
+            <strong>Open the Mina app</strong>
+            <span>Reconnect the device if needed, then retry.</span>
+          </div>
+        </div>
+        <div className="tx-auth__actions">
+          <Button
+            className="big-icon-button"
+            text="Go back"
+            onClick={stepBackward}
+          />
+          <Button
+            text="Retry"
+            style="primary"
+            icon={<Repeat />}
+            appendIcon
+            onClick={retryLedgerTransaction}
+          />
         </div>
       </div>
     );
   }
 
   return isLedgerEnabled ? (
-    <div className="mx-auto  w-75">
-      <div className="my-5">
-        <div className="spinner-container">
+    <div className="tx-auth">
+      <div className="tx-auth__header">
+        <span className="tx-auth__eyebrow">Ledger</span>
+        <h3 className="tx-auth__title">Confirm on your Ledger</h3>
+        <p className="tx-auth__subtitle">
+          Review the transaction on your device and approve it in the Mina app.
+        </p>
+      </div>
+      <div className="tx-auth__panel tx-auth__panel--ledger">
+        <div className="tx-auth__spinner-wrap">
           <Spinner
             show={true}
             fullscreen={false}
           />
         </div>
-        <div className="align-left mt-3 mb-2 label text-center">
-          <strong>Signing</strong>
-          <br />
-          <small>Waiting for the Ledger device to sign the transaction</small>
-          <br />
-          <small className="w-100 text-center mb-4">This could take up to 3 minutes.</small>
+        <div className="tx-auth__status-copy">
+          <strong>Waiting for signature</strong>
+          <span>This can take up to 3 minutes.</span>
         </div>
       </div>
     </div>
   ) : (
-    <div className="mx-auto  w-75">
-      <div className="my-5">
-        <div className="align-left mt-3 mb-2 label">
-          <strong>Passphrase/Private key</strong>
-          <br />
-          <small>Insert the Passphrase/Private key to sign the transaction</small>
+    <div className="tx-auth">
+      <div className="tx-auth__header">
+        <span className="tx-auth__eyebrow">Sign</span>
+        <h3 className="tx-auth__title">Enter your recovery phrase or private key</h3>
+        <p className="tx-auth__subtitle">
+          Use it to sign the transaction on this device.
+        </p>
+      </div>
+
+      <div className="tx-auth__panel tx-auth__panel--manual">
+        <div className="tx-auth__status-icon">
+          <Shield size={18} />
         </div>
+        <div className="tx-auth__status-copy">
+          <strong>Local signing</strong>
+          <span>Your secret is used only to create the signature.</span>
+        </div>
+      </div>
+
+      <div className="tx-auth__field">
+        <label className="tx-auth__field-label" htmlFor="tx-auth-secret">
+          Recovery phrase or private key
+        </label>
         <Input
+          id="tx-auth-secret"
           inputHandler={e => setPrivateKey(e.currentTarget.value)}
-          placeholder="Insert your Passphrase or Private key"
+          placeholder="Enter your recovery phrase or private key"
           hidden={true}
           type="text"
         />
-        <Row>
-          <Col xs={6}>
-            <Button
-              className="big-icon-button"
-              text="Cancel"
-              onClick={stepBackwards}
-            />
-          </Col>
-          <Col xs={6}>
-            <Button
-              text="Send"
-              style="primary"
-              icon={<ArrowRight />}
-              appendIcon
-              onClick={confirmPrivateKey}
-            />
-          </Col>
-        </Row>
+      </div>
+
+      <div className="tx-auth__actions">
+        <Button
+          className="big-icon-button"
+          text="Cancel"
+          onClick={stepBackwards}
+          style='quiet'
+        />
+        <Button
+          text="Sign transaction"
+          style="primary"
+          icon={<ArrowRight />}
+          appendIcon
+          onClick={confirmPrivateKey}
+        />
       </div>
     </div>
   );

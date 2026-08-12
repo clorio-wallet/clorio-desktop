@@ -13,7 +13,7 @@ import SecureDataStorageComponent from '../components/ReadSecureStorage';
 import useSecureStorage from '../hooks/useSecureStorage';
 import {useSetRecoilState} from 'recoil';
 import {configState, walletState} from '../store';
-import isElectron from 'is-electron';
+import {isElectron} from '../tools/environment';
 
 interface IProps {
   toggleLoader: (state: boolean) => void;
@@ -46,10 +46,6 @@ function Login({toggleLoader}: IProps) {
       document.removeEventListener('keydown', listener);
     };
   }, [privateKey]);
-
-  /**
-   * Clean component state on component dismount
-   */
   useEffect(() => {
     return () => {
       setPrivateKey('');
@@ -64,14 +60,10 @@ function Login({toggleLoader}: IProps) {
       storeSessionAndRedirect(derivedPublicKey || publicKey, id);
     } else if (derivedPublicKey) {
       toggleLoader(true);
-      const id = +userId || -1;
+      const id = +userId! || -1;
       storeSessionAndRedirect(derivedPublicKey || publicKey, id);
     }
   };
-
-  /**
-   * If User ID service fails, login into the app
-   */
   useEffect(() => {
     if (userIdError) {
       if (storePassphrase) {
@@ -85,11 +77,17 @@ function Login({toggleLoader}: IProps) {
 
   const storeSessionAndRedirect = async (publicKey: string, id: number) => {
     await userIdFetch({variables: {publicKey}});
-    const isUsingMnemonic = privateKey.trim().split(' ').length === 12 || privateKey.trim().split(' ').length === 24;
-    if (storePassphrase) {
-      setPassphrase(isUsingMnemonic);
-    }
-    const success = await storeSession(publicKey, id, false, 0, isUsingMnemonic);
+    const isUsingMnemonic =
+      privateKey.trim().split(' ').length === 12 || privateKey.trim().split(' ').length === 24;
+    setPassphrase(isUsingMnemonic);
+    await storeSession({
+      address: publicKey,
+      id,
+      ledger: false,
+      ledgerAccount: 0,
+      mnemonic: isUsingMnemonic,
+      accountNumber: 0,
+    });
     await updateWallet({
       address: publicKey,
       id,
@@ -100,25 +98,18 @@ function Login({toggleLoader}: IProps) {
       isAuthenticated: true,
     });
     await storeAccounts([{accountId: 0, address: publicKey}]);
-    if (success) {
-      setConfig(prev => ({
-        ...prev,
-        isAuthenticated: true,
-        isUsingMnemonic,
-        isLedgerEnabled: false,
-        isLocked: false,
-      }));
-      navigate('/overview');
-      toggleLoader(false);
-    }
+    setConfig(prev => ({
+      ...prev,
+      isAuthenticated: true,
+      isUsingMnemonic,
+      isLedgerEnabled: false,
+      isLocked: false,
+    }));
+    navigate('/overview');
+    toggleLoader(false);
   };
 
   const storePassphraseHandler = () => setStorePassphrase(!storePassphrase);
-
-  /**
-   * Set text from input inside component state
-   * @param {event} e Input text
-   */
   const inputHandler = (e: React.FormEvent<HTMLInputElement>) => {
     const value = e.currentTarget.value.trim();
     setPrivateKey(value);
@@ -151,12 +142,7 @@ function Login({toggleLoader}: IProps) {
       }
     }
   }, []);
-  // Debounce the verifyMnemonicSpell function to prevent rapid, unnecessary executions
   const debouncedVerifyMnemonicSpell = useCallback(debounce(verifyMnemonicSpell, 300), []);
-
-  /**
-   * Use MinaSDK to check if private key from input is valid
-   */
   const checkCredentials = async (skipChecks?: boolean) => {
     try {
       const derivedAccount = await deriveAccount(privateKey.trim(), undefined, skipChecks);
@@ -171,18 +157,13 @@ function Login({toggleLoader}: IProps) {
       }
     } catch (e) {
       if (navigator.onLine) {
-        toast.error('Private key not valid, please try again.');
+        toast.error('Invalid key. Check your recovery phrase or private key.');
       } else {
         setShowPasswordModal(true);
         toast.warning('You are currently offline.');
       }
     }
   };
-
-  /**
-   * If the Passphrase/Private key is empty disable button
-   * @returns boolean
-   */
   const disableButton = () => {
     return !privateKey;
   };
@@ -205,7 +186,6 @@ function Login({toggleLoader}: IProps) {
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-        console.log('CTRL + U', privateKey);
         checkCredentials(true);
       }
     };
@@ -220,13 +200,13 @@ function Login({toggleLoader}: IProps) {
       <div className="homepage-card glass-card flex-vertical-center flex flex-col">
         <div className="w-100">
           <div className="flex-vertical-center flex flex-col">
-            <h1>Login</h1>
-            <p className="mt-1 text-center">Sign in with your passphrase or private key</p>
+          <h1>Import wallet</h1>
+          <p className="mt-1 text-center">Enter your recovery phrase or private key</p>
             <div className="divider w-100" />
           </div>
         </div>
         <div className="text-white">
-          Don&apos;t have an wallet?{' '}
+          Don&apos;t have a wallet?{' '}
           <Link
             className="orange-text"
             to="/register"
@@ -237,7 +217,7 @@ function Login({toggleLoader}: IProps) {
         <div className="min-height-200 mt-3 w-100">
           <Input
             inputHandler={inputHandler}
-            placeholder="Enter here"
+            placeholder="Paste your recovery phrase or private key"
             hidden
             type="text"
           />
@@ -263,7 +243,7 @@ function Login({toggleLoader}: IProps) {
                 htmlFor="storePassphrase"
                 data-tip="Available only on desktop version"
               >
-                Store the passphrase
+                Remember me
               </label>
               <ReactTooltip multiline />
             </span>
@@ -272,7 +252,7 @@ function Login({toggleLoader}: IProps) {
             <div className="half-card py-3">
               <Button
                 className="big-icon-button"
-                text="Go back"
+                text="Back"
                 icon={<ArrowLeft />}
                 link="/login-selection"
               />
@@ -280,7 +260,7 @@ function Login({toggleLoader}: IProps) {
             <div className="half-card py-3">
               <Button
                 onClick={checkCredentials}
-                text="Access the wallet"
+                text="Import wallet"
                 style="primary"
                 icon={<ArrowRight />}
                 appendIcon

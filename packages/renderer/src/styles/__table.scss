@@ -371,6 +371,22 @@ th {
   }
 }
 
+.align-items-center{
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  span{
+    width: fit-content;
+    margin: 0 10px;
+  }
+}
+
+.trim-receiver{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (min-width: 1200px) {
   #transaction-table {
     .small-screen-stake-table-text,

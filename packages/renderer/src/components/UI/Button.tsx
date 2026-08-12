@@ -1,4 +1,54 @@
 import {Link} from 'react-router-dom';
+import styles from './Button.module.scss';
+
+type ButtonStyle =
+  | 'standard'
+  | 'no-style'
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'danger'
+  | 'success'
+  | 'inline'
+  | 'quiet'
+  | 'tint'
+  | 'pill'
+  | 'toolbar'
+  | 'link';
+
+type ButtonVariant = 'outlined' | 'glow' | 'pulse' | string;
+type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
+
+const STYLE_CLASS_MAP: Record<ButtonStyle, string> = {
+  standard: styles.standard,
+  'no-style': styles.noStyle,
+  primary: styles.primary,
+  secondary: styles.secondary,
+  ghost: styles.ghost,
+  danger: styles.danger,
+  success: styles.success,
+  inline: styles.inline,
+  quiet: styles.quiet,
+  tint: styles.tint,
+  pill: styles.pill,
+  toolbar: styles.toolbar,
+  link: styles.linkStyle,
+};
+
+const SIZE_CLASS_MAP: Record<ButtonSize, string> = {
+  sm: styles.sm,
+  md: styles.md,
+  lg: styles.lg,
+  icon: styles.icon,
+};
+
+const getVariantClassName = (variant?: ButtonVariant) => {
+  if (!variant) {
+    return '';
+  }
+
+  return styles[variant] ?? `btn btn-${variant}`;
+};
 
 interface IProps {
   className?: string;
@@ -9,9 +59,11 @@ interface IProps {
   link?: string;
   loading?: boolean;
   disableAnimation?: boolean;
-  style?: 'standard' | 'no-style' | 'primary';
+  disableHoverStyle?: boolean;
+  style?: ButtonStyle;
   appendIcon?: boolean;
-  variant?: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
 }
 
 const Button = ({
@@ -23,60 +75,77 @@ const Button = ({
   link,
   loading,
   disableAnimation,
+  disableHoverStyle,
   style = 'standard',
   appendIcon = false,
   variant,
+  size = 'md',
 }: IProps) => {
   const clickHandler = () => {
-    if (loading) {
-      return;
-    }
-    if (onClick) {
+    if (!loading && onClick) {
       onClick();
     }
   };
 
-  const styleClass =
-    style === 'standard'
-      ? 'button non-selectable-text'
-      : style === 'primary'
-      ? `primary ${disabled ? 'primary disabled' : ''}`
-      : '';
+  const baseClasses = [
+    styles.buttonBase,
+    disableAnimation ? '' : styles.buttonAnimation,
+    disableHoverStyle ? styles.noHoverStyle : '',
+    SIZE_CLASS_MAP[size],
+    STYLE_CLASS_MAP[style],
+    disabled ? styles.disabled : '',
+    getVariantClassName(variant),
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-  const button = (
-    <div
-      className={`${className} ${disableAnimation ? '' : ' button-animation '}  ${styleClass} ${
-        variant ? `btn btn-${variant}` : ''
-      }`}
-      onClick={clickHandler}
-    >
-      {loading ? (
-        <div className="LoaderWrapper">
-          <div className="LineWrapper">
-            <div className="LineTop" />
-          </div>
-        </div>
-      ) : (
-        <>
-          {!appendIcon && icon} &nbsp; {text} &nbsp; {appendIcon && icon}
-        </>
-      )}
-    </div>
+  const content = loading ? (
+    <span className={styles.loaderWrapper}>
+      <span className="LoaderWrapper">
+        <span className="LineWrapper">
+          <span className="LineTop" />
+        </span>
+      </span>
+    </span>
+  ) : (
+    <span className={styles.buttonContent}>
+      {!appendIcon && icon}
+      {text}
+      {appendIcon && icon}
+    </span>
   );
 
-  const disabledButton = (
-    <div
-      className={`${className} ${disableAnimation ? '' : ' button-animation '}  ${styleClass} ${
-        variant ? `btn btn-${variant}` : ''
-      }`}
-    >
-      {!appendIcon && icon} &nbsp; {text} &nbsp; {appendIcon && icon}
-    </div>
-  );
-  if (disabled) {
-    return disabledButton;
+  if (link) {
+    if (disabled) {
+      return <span className={baseClasses}>{content}</span>;
+    }
+    return (
+      <Link
+        to={link}
+        className={baseClasses}
+        onClick={clickHandler}
+        role="button"
+      >
+        {content}
+      </Link>
+    );
   }
-  return link ? <Link to={link}> {button} </Link> : button;
+
+  if (style === 'no-style' && !onClick) {
+    return <span className={baseClasses}>{content}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      className={baseClasses}
+      onClick={clickHandler}
+      disabled={disabled}
+    >
+      {content}
+    </button>
+  );
 };
 
 export default Button;

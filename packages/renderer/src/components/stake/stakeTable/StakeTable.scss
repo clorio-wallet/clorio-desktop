@@ -1,0 +1,350 @@
+.stake-table-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.stake-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stake-overview-card {
+  min-height: 160px;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+    rgba(18, 20, 33, 0.82);
+}
+
+.stake-table-panel {
+  padding: 22px 24px 18px;
+}
+
+.stake-table-panel__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.stake-table-panel__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.stake-table-panel__eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.stake-table-panel__title {
+  margin: 0;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff6f2;
+}
+
+.stake-table-panel__subtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.stake-table-panel__cta {
+  flex-shrink: 0;
+}
+
+.stake-table-panel__empty {
+  padding: 22px 0 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.stake-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+  }
+}
+
+.stake-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+
+  thead {
+    th {
+      padding: 0 16px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: left;
+      color: rgba(255, 255, 255, 0.48);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  }
+}
+
+.stake-table thead th:first-child {
+  width: 42%;
+}
+
+.stake-table__th-action {
+  text-align: right !important;
+  width: 140px;
+}
+
+.stake-row {
+  transition: background-color 160ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.025);
+  }
+}
+
+.stake-row--boosted {
+  background:
+    linear-gradient(90deg, rgba(243, 140, 62, 0.08), transparent 34%),
+    rgba(255, 247, 231, 0.015);
+}
+
+.stake-row__cell {
+  padding: 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stake-row__cell--validator {
+  min-width: 420px;
+}
+
+.stake-row__cell--action {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.stake-row__value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff6f2;
+  font-variant-numeric: tabular-nums;
+}
+
+.stake-row__link,
+.stake-card__link {
+  color: #ffd1ae;
+  text-decoration: none;
+  font-weight: 700;
+
+  &:hover {
+    color: #ffe0c6;
+    text-decoration: underline;
+  }
+}
+
+.stake-row__muted,
+.stake-card__muted {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.stake-validator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.stake-validator__avatar {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.stake-validator__image {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+
+.stake-validator__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stake-validator__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.stake-validator__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 750;
+  color: #fff6f2;
+}
+
+.stake-validator__badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(243, 140, 62, 0.12);
+  color: #ffd1ae;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.stake-validator__address {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-family: "SF Mono", Monaco, "Courier New", monospace;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.stake-validator__action {
+  // --btn-width: auto;
+}
+
+.stake-card-list {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stake-card {
+  padding: 16px;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+    rgba(18, 20, 33, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stake-card--boosted {
+  border-color: rgba(243, 140, 62, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(243, 140, 62, 0.08);
+}
+
+.stake-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.stake-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stake-card__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.stake-card__metric--wide {
+  grid-column: 1 / -1;
+}
+
+.stake-card__label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.44);
+}
+
+.stake-card__value {
+  font-size: 15px;
+  font-weight: 750;
+  color: #fff6f2;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 980px) {
+  .stake-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stake-table-panel__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 860px) {
+  .stake-table-wrapper {
+    display: none;
+  }
+
+  .stake-card-list {
+    display: flex;
+  }
+}
+
+@media (max-width: 640px) {
+  .stake-overview-card,
+  .stake-table-panel {
+    padding: 18px 16px;
+  }
+
+  .stake-card {
+    padding: 14px;
+  }
+
+  .stake-card__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stake-card__metric--wide {
+    grid-column: auto;
+  }
+}

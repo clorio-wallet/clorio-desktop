@@ -1,29 +1,24 @@
+import * as React from 'react';
 import {formatDistance} from 'date-fns';
-import {openLinkOnBrowser, sanitizeString} from '../../tools';
+import {openLinkOnBrowser, sanitizeString, trimMiddle, copyToClipboard} from '../../tools';
 import type {BlacklistedAddress} from '../../types/Blacklist';
 import TransactionIcon from './TransactionIcon';
 import type {ITransactionRowData} from './TransactionsTypes';
 import {useNetworkSettingsContext} from '/@/contexts/NetworkContext';
 import {formatUrl} from './TransactionsHelper';
+import {Copy} from 'react-feather';
 
-const TransactionRow = (
-  {
-    timestamp,
-    amount,
-    sender,
-    receiver,
-    fee,
-    memo,
-    id,
-    type,
-    failed,
-    failure_reason,
-  }: ITransactionRowData,
-  index: number,
-  userAddress: string,
-  blacklist: BlacklistedAddress[],
-  isMempool: boolean,
-) => {
+interface IProps {
+  rowData: ITransactionRowData;
+  index: number;
+  userAddress: string;
+  blacklist: BlacklistedAddress[];
+  isMempool: boolean;
+}
+
+const TransactionRow: React.FC<IProps> = ({rowData, index, userAddress, blacklist, isMempool}) => {
+  const {timestamp, amount, sender, receiver, memo, id, type, failed, failure_reason} = rowData;
+
   let senderScam = 0;
   const isScam = blacklist.reduce((previous, actual) => {
     if (actual.address === receiver) {
@@ -54,70 +49,87 @@ const TransactionRow = (
       : 'red-text'
     : 'green-text';
 
-  const urlPath = isMempool ? 'payment' : 'tx';
   const {settings} = useNetworkSettingsContext();
 
+  const handleCopy = (e: React.MouseEvent, text: string) => {
+    e.stopPropagation();
+    copyToClipboard(text);
+  };
+
   return (
-    <>
-      <tr
-        key={index}
-        className={isScam ? 'dangerous-transaction' : ''}
-      >
-        <td className="table-element table-icon">
-          {' '}
-          {TransactionIcon(
-            type,
-            sender,
-            receiver,
-            userAddress,
-            isScam,
-            failed,
-            failure_reason,
-          )}{' '}
-        </td>
-        <td
-          className="table-element table-hash"
-          data-tip={memo ? `Memo: ${sanitizeString(memo)}` : null}
-        >
+    <tr
+      key={index}
+      className={`${isScam ? 'dangerous-transaction' : ''} hover-row`}
+    >
+      <td className="table-element table-icon align-middle">
+        {TransactionIcon(type, sender, receiver, userAddress, isScam, failed, failure_reason)}
+      </td>
+      <td className="table-element table-hash align-middle">
+        <div className="d-flex align-items-center">
           <a
             onClick={() => !isMempool && openLinkOnBrowser(formatUrl(id, settings?.explorerUrl))}
             target="_blank"
             rel="noreferrer"
-            className="purple-text"
+            className="purple-text font-weight-medium mr-2"
+            style={{cursor: 'pointer'}}
+            data-tip={memo ? `Memo: ${sanitizeString(memo)}` : id}
           >
-            {id}
+            {trimMiddle(id, 24)}
           </a>
-        </td>
-        <td
-          className="table-element"
-          data-tip={timeISOString}
-        >
-          {timeDistance}
-        </td>
-        <td className="table-element">{sender === userAddress ? 'you' : sender}</td>
-        <td className="table-element">{receiver === userAddress ? 'you' : receiver}</td>
-        <td
-          className={`table-element ${amountColor}`}
-          data-tip={fee}
-        >
-          {humanAmount} Mina
-        </td>
-      </tr>
-      {isScam && (
-        <tr
-          key={`scam-${index}`}
-          className="scam-alert-row"
-        >
-          <td colSpan={6}>
-            Be aware! This{' '}
-            <strong data-tip={senderScam ? receiver : sender}>
-              {senderScam ? 'receiver' : 'sender'}
-            </strong>{' '}
-            has been reported as a scammer!
-          </td>
-        </tr>
-      )}
-    </>
+          <Copy
+            size={14}
+            className="cursor-pointer text-muted hover-primary"
+            onClick={e => handleCopy(e, id)}
+            data-tip="Copy Transaction Hash"
+          />
+        </div>
+      </td>
+      <td
+        className="table-element align-middle"
+        data-tip={timeISOString}
+      >
+        <span className="text-muted small font-weight-bold">{timeDistance}</span>
+      </td>
+      <td className="table-element align-middle">
+        <div className="d-flex align-items-center">
+          <span
+            className="mr-2"
+            data-tip={sender}
+          >
+            {sender === userAddress ? 'You' : trimMiddle(sender, 24)}
+          </span>
+          {sender !== userAddress && (
+            <Copy
+              size={14}
+              className="cursor-pointer text-muted hover-primary"
+              onClick={e => handleCopy(e, sender)}
+              data-tip="Copy Sender Address"
+            />
+          )}
+        </div>
+      </td>
+      <td className="table-element align-middle">
+        <div className="d-flex align-items-center">
+          <span
+            className="mr-2 trim-receiver"
+            data-tip={receiver}
+          >
+            {receiver === userAddress ? 'You' : trimMiddle(receiver, 24)}
+          </span>
+          {receiver !== userAddress && (
+            <Copy
+              size={14}
+              className="cursor-pointer text-muted hover-primary"
+              onClick={e => handleCopy(e, receiver)}
+              data-tip="Copy Receiver Address"
+            />
+          )}
+        </div>
+      </td>
+      <td className={`table-element align-middle font-weight-bold ${amountColor}`}>
+        {humanAmount} MINA
+      </td>
+    </tr>
   );
 };
 

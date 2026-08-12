@@ -7,7 +7,7 @@ const NewsBanner = (props: INewsData) => {
   const {title, subtitle, link, cta} = props;
 
   return !isEmptyObject(props) ? (
-    <div className="glass-card p-4 mb-4">
+    <div className="glass-card p-4 mb-4 news-banner-reveal">
       <Row>
         <Col
           md={8}

@@ -1,5 +1,5 @@
 import Big from 'big.js';
-import isElectron from 'is-electron';
+import {isElectron} from './environment';
 import {toast} from 'react-toastify';
 import BadWords from 'bad-words';
 import Censorify from 'censorify-it';
@@ -8,7 +8,7 @@ import {toNanoMINA} from './mina';
 import {DEFAULT_VALID_UNTIL_FIELD, TRANSACTIONS_TABLE_ITEMS_PER_PAGE, MINIMUM_FEE} from './const';
 import {VALIDATORS_TABLE_ITEMS_PER_PAGE} from './const/transactions';
 import {wordlists} from 'bip39';
-import {NET_CONFIG_TYPE, getCurrentNetConfig} from './zkapp';
+import {getCurrentNetConfig} from './zkapp';
 import * as bs58check from 'bs58check';
 
 const shortUrls: string[] = [];
@@ -240,7 +240,7 @@ export const sanitizeString = (value: string): string => {
     value = removeBadWords(value);
   }
 
-  if (value && isBad('value')) {
+  if (value && isBad(value)) {
     return 'unavailable';
   }
 
@@ -284,15 +284,12 @@ export function decodeMemo(encode) {
   }
 }
 async function getSignClient() {
-  const netConfig = await getCurrentNetConfig();
-  let netType = '';
+  const netConfig = getCurrentNetConfig();
   const {default: Client} = await import('mina-signer');
-  if (netConfig.netType) {
-    netType = netConfig.netType;
-  }
-  const client = await new Client({
+  const client = new Client({
     network:
-      JSON.parse(localStorage.getItem('networkSettings'))?.network ||
+      JSON.parse(localStorage.getItem('networkSettings') ?? 'null')?.network ||
+      netConfig.netType ||
       import.meta.env.VITE_REACT_APP_NETWORK,
   });
   return client;

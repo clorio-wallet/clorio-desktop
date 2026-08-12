@@ -1,0 +1,22 @@
+html {
+  background-color: var(--color-bg);
+}
+
+body {
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+a {
+  color: var(--color-link);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+

@@ -2,7 +2,7 @@ import {atom} from 'recoil';
 
 export const zkappInitialState = {
   isPendingConfirmation: false,
-  txtpe: null,
+  txType: null,
   showTransactionConfirmation: false,
   showPaymentConfirmation: false,
   showDelegationConfirmation: false,

@@ -1,0 +1,195 @@
+/* ═══════════════════════════════════════════════════════
+   Balance Card — Polished & Responsive
+   ═══════════════════════════════════════════════════════ */
+
+.balance-card {
+  padding: 24px;
+  overflow: hidden;
+}
+
+.balance-card__inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+/* ── Avatar ── */
+.balance-card__avatar {
+  flex-shrink: 0;
+}
+
+.balance-card__avatar-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, rgba(193, 151, 255, 0.5), rgba(255, 184, 92, 0.5));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Content ── */
+.balance-card__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Address Info ── */
+.address-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.address-info__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.address-info__label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.address-info__copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.address-info__value {
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Stats Row ── */
+.balance-card__stats {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.balance-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.balance-stat__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.balance-stat__value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.balance-stat-divider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 4px;
+}
+
+/* ── Responsive: Tablet ── */
+@media (max-width: 640px) {
+  .balance-card {
+    padding: 16px;
+  }
+
+  .balance-card__inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .balance-card__content {
+    width: 100%;
+  }
+
+  .address-info {
+    align-items: center;
+  }
+
+  .address-info__header {
+    justify-content: center;
+  }
+
+  .address-info__value {
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .balance-card__stats {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .balance-stat {
+    align-items: center;
+    min-width: 80px;
+  }
+
+  .balance-stat__value {
+    font-size: 16px;
+  }
+}
+
+/* ── Responsive: Mobile ── */
+@media (max-width: 400px) {
+  .balance-card__stats {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .balance-stat-divider {
+    width: 60px;
+    height: 1px;
+    margin: 0;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .balance-stat__value span {
+    animation: none !important;
+  }
+
+  .address-info__copy {
+    transition: none !important;
+  }
+}
