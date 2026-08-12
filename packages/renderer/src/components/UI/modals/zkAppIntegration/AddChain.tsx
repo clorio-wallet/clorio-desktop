@@ -1,5 +1,4 @@
 import {useRecoilState} from 'recoil';
-import {ModalContainer} from '..';
 import {networkState} from '../../../../store';
 import Button from '../../Button';
 import {sendResponse} from '../../../../tools/mina-zkapp-bridge';
@@ -7,7 +6,13 @@ import {toast} from 'react-toastify';
 import {useNavigate} from 'react-router-dom';
 import {useNetworkSettingsContext} from '/@/contexts/NetworkContext';
 import {ERROR_CODES} from '/@/tools/zkapp';
-import {AlertOctagon} from 'react-feather';
+import {AlertTriangle, PlusCircle} from 'react-feather';
+import {
+  ZkappModal,
+  ZkappModalActions,
+  ZkappModalDetails,
+  ZkappModalNotice,
+} from './ZkappModal';
 
 const NODE_INFO: string = `
 query NodeInfo {
@@ -41,45 +46,6 @@ export default function AddChain() {
     }
   };
 
-  const trimSpace = (str: string) => {
-    if (typeof str !== 'string') {
-      return str;
-    }
-    let res = str.replace(/(^\s*)|(\s*$)/g, '');
-    res = res.replace(/[\r\n]/g, '');
-    return res;
-  };
-
-  // TODO: Check url before submit
-  // const urlValid = (url: string) => {
-  //   if (validUrl.isWebUri(url)) {
-  //     return true;
-  //   }
-  //   return false;
-  // };
-
-  // const baseCheck = (url: string) => {
-  //   const urlInput = trimSpace(nodeAddressValue);
-  //   const nameInput = trimSpace(nodeName);
-  //   if (!urlValid(urlInput)) {
-  //     setErrorTip(i18n.t('incorrectNodeAddress'));
-  //     return {};
-  //   }
-
-  //   const exist = checkNetworkUrlExist(netConfigList, urlInput);
-  //   if (exist.index !== -1) {
-  //     if (editorType === NodeEditorType.add) {
-  //       toast.error(`Node address ${urlInput} already exists`);
-  //       return {};
-  //     } else {
-  //       if (exist.config.id !== editItem.id) {
-  //         toast.error(`Node address ${urlInput} already exists`);
-  //         return {};
-  //       }
-  //     }
-  //   }
-  // };
-
   const networkSelectHandler = async () => {
     try {
       const networkData = {
@@ -109,7 +75,9 @@ export default function AddChain() {
       navigate('/overview');
       toast.success('Network switched successfully');
     } catch (error) {
-      toast.error(`Failed to switch network: ${error.message}`);
+      toast.error(
+        `Failed to switch network: ${error instanceof Error ? error.message : String(error)}`,
+      );
       sendResponse('error', ERROR_CODES.notSupportChain);
     }
   };
@@ -117,7 +85,8 @@ export default function AddChain() {
   // Test network node quering for the network details before switching
   const testNetworkNode = async () => {
     try {
-      const resp = await fetch(addChainData?.url, {
+      if (!addChainData?.url) throw new Error('Missing node URL');
+      const resp = await fetch(addChainData.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -136,52 +105,24 @@ export default function AddChain() {
   };
 
   return (
-    <ModalContainer
+    <ZkappModal
       show={isAddingChain}
       close={onClose}
-      className="confirm-transaction-modal"
+      title="Add network"
+      subtitle="Review the node details before adding this network to Clorio."
+      icon={<PlusCircle size={20} />}
     >
-      <div>
-        <h1>Add Network</h1>
-        <hr />
-      </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-4 flex-col confirm-transaction-data">
-          <div className="w-100">
-            <h4>Node name</h4>
-            <p className="data-field">{addChainData?.name}</p>
-          </div>
-          <div className="w-100">
-            <h4>Node URL</h4>
-            <p className="data-field">{addChainData?.url}</p>
-          </div>
-        </div>
-        <div
-          className="alert alert-warning flex flex-row items-center justify-start gap-2"
-          role="alert"
-        >
-          <AlertOctagon />
-          <p className="small m-0">
-            You are about to add a new network to your wallet. <br />
-            Please ensure that the network you are adding is secure and reliable.
-          </p>
-        </div>
-        <div className="flex mt-2 gap-4 confirm-transaction-data sm-flex-reverse">
-          <Button
-            className="w-100"
-            text="Cancel"
-            style="standard"
-            variant="outlined"
-            onClick={onClose}
-          />
-          <Button
-            className="w-100"
-            text="Confirm"
-            style="primary"
-            onClick={onConfirm}
-          />
-        </div>
-      </div>
-    </ModalContainer>
+      <ZkappModalDetails items={[
+        {label: 'Network', value: addChainData?.name},
+        {label: 'Node URL', value: addChainData?.url, title: addChainData?.url},
+      ]} />
+      <ZkappModalNotice warning icon={<AlertTriangle size={17} />} title="Custom network">
+        Only add nodes you recognize. A malicious node can return misleading blockchain data.
+      </ZkappModalNotice>
+      <ZkappModalActions>
+        <Button text="Cancel" variant="outlined" onClick={onClose} />
+        <Button text="Add network" style="primary" onClick={onConfirm} />
+      </ZkappModalActions>
+    </ZkappModal>
   );
 }

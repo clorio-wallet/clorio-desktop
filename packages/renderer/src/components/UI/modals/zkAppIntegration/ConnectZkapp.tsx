@@ -1,22 +1,23 @@
+import {AlertTriangle, Link} from 'react-feather';
 import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
-import {ModalContainer} from '../ModalContainer';
 import {connectZkappState, connectedSitesState, walletState} from '/@/store';
-import Button from '../../Button';
 import {sendResponse} from '/@/tools/mina-zkapp-bridge';
-import {AlertOctagon} from 'react-feather';
+import Button from '../../Button';
+import {
+  ZkappModal,
+  ZkappModalActions,
+  ZkappModalDetails,
+  ZkappModalNotice,
+} from './ZkappModal';
 
 export default function ConnectZkapp() {
   const wallet = useRecoilValue(walletState);
   const updateConnectedSites = useSetRecoilState(connectedSitesState);
   const {address: sender} = wallet;
   const [{showConnectZkapp, source, title}, updateConnectZkapp] = useRecoilState(connectZkappState);
+
   const onClose = () => {
-    updateConnectZkapp(prev => ({
-      ...prev,
-      showConnectZkapp: false,
-      source: '',
-      title: '',
-    }));
+    updateConnectZkapp(prev => ({...prev, showConnectZkapp: false, source: '', title: ''}));
   };
 
   const onConfirm = async () => {
@@ -30,44 +31,24 @@ export default function ConnectZkapp() {
   };
 
   return (
-    <ModalContainer
+    <ZkappModal
       show={showConnectZkapp}
       close={onClose}
-      className="confirm-transaction-modal"
-      closeOnBackgroundClick={false}
+      title="Connect zkApp"
+      subtitle="Allow this site to view your active account address."
+      icon={<Link size={20} />}
     >
-      <div>
-        <h1>Connection Request</h1>
-        <hr />
-      </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col w-100">
-          <h4>This website would like to view account:</h4>
-          <p className="data-field mb-4 mt-2">{source}</p>
-          <div
-            className="alert alert-warning flex flex-row items-center gap-2"
-            role="alert"
-          >
-            <AlertOctagon />
-            <p className="small m-0">{'For security reasons connect only to trusted zkapps'}</p>
-          </div>
-        </div>
-        <div className="flex mt-2 gap-4 confirm-transaction-data sm-flex-reverse">
-          <Button
-            className="w-100"
-            text="Cancel"
-            style="standard"
-            variant="outlined"
-            onClick={onClose}
-          />
-          <Button
-            className="w-100"
-            text="Confirm"
-            style="primary"
-            onClick={onConfirm}
-          />
-        </div>
-      </div>
-    </ModalContainer>
+      <ZkappModalDetails items={[
+        {label: 'Site', value: title || source, title: source},
+        {label: 'Account', value: sender, title: sender},
+      ]} />
+      <ZkappModalNotice warning icon={<AlertTriangle size={17} />} title="Check the requesting site">
+        Connect only to zkApps you recognize and trust.
+      </ZkappModalNotice>
+      <ZkappModalActions>
+        <Button text="Cancel" variant="outlined" onClick={onClose} />
+        <Button text="Connect" style="primary" onClick={onConfirm} />
+      </ZkappModalActions>
+    </ZkappModal>
   );
 }

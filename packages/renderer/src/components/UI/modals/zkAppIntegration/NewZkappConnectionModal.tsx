@@ -1,14 +1,15 @@
+import {AlertTriangle, ExternalLink} from 'react-feather';
 import {useState} from 'react';
-import Input from '../../input/Input';
-import Button from '../../Button';
-import {ModalContainer} from '../ModalContainer';
 import {toast} from 'react-toastify';
-import {AlertOctagon} from 'react-feather';
+import Button from '../../Button';
+import Input from '../../input/Input';
+import {
+  ZkappModal,
+  ZkappModalActions,
+  ZkappModalNotice,
+} from './ZkappModal';
 
-const initialZkappData = {
-  name: '',
-  url: '',
-};
+const initialZkappData = {name: '', url: ''};
 
 export default function NewZkappConnectionModal({
   showNewZkapp,
@@ -20,66 +21,44 @@ export default function NewZkappConnectionModal({
   openLink: (url: string) => void;
 }) {
   const [newZkapp, setNewZkapp] = useState(initialZkappData);
-
-  const isValidUrl = () => {
-    try {
-      new URL(newZkapp.url);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
+  const close = () => setShowNewZkapp(false);
 
   const onSubmit = () => {
-    if (!isValidUrl()) {
-      toast.info('Invalid URL');
-      return;
+    try {
+      const url = new URL(newZkapp.url);
+      if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+      openLink(url.toString());
+      setNewZkapp(initialZkappData);
+      close();
+    } catch {
+      toast.info('Enter a valid HTTP or HTTPS URL');
     }
-    openLink(newZkapp.url);
-    setNewZkapp(initialZkappData);
-    setShowNewZkapp(false);
   };
 
   return (
-    <ModalContainer
+    <ZkappModal
       show={showNewZkapp}
-      close={() => setShowNewZkapp(false)}
-      closeOnBackgroundClick={true}
+      close={close}
+      title="Open zkApp"
+      subtitle="Enter the address of the zkApp you want to open in Clorio."
+      icon={<ExternalLink size={20} />}
     >
-      <div className="min-w-500">
-        <div className="w-100 ">
-          <div className="flex flex-col flex-vertical-center">
-            <h1>Open Zkapp</h1>
-          </div>
-        </div>
-        <div className="divider w-100" />
-        <div className="pb-4">
-          <h5>Zkapp URL</h5>
-          <Input
-            type="text"
-            placeholder="Enter URL"
-            className="input"
-            inputHandler={e => {
-              setNewZkapp({...newZkapp, url: e.target.value});
-            }}
-          />
-          <div
-            className="alert alert-warning flex flex-row items-center justify-start gap-2"
-            role="alert"
-          >
-            <AlertOctagon />
-            <p className="small m-0">
-              Connect only to trusted zkapps. <br />
-              Do not enter your private keys on untrusted sites.
-            </p>
-          </div>
-        </div>
-        <Button
-          text="Open"
-          style="primary"
-          onClick={onSubmit}
+      <div>
+        <h4>zkApp URL</h4>
+        <Input
+          type="url"
+          value={newZkapp.url}
+          placeholder="https://example.com"
+          inputHandler={event => setNewZkapp({...newZkapp, url: event.target.value})}
         />
       </div>
-    </ModalContainer>
+      <ZkappModalNotice warning icon={<AlertTriangle size={17} />} title="Open trusted sites only">
+        Never enter your private key or recovery phrase into a zkApp.
+      </ZkappModalNotice>
+      <ZkappModalActions>
+        <Button text="Cancel" variant="outlined" onClick={close} />
+        <Button text="Open zkApp" style="primary" disabled={!newZkapp.url} onClick={onSubmit} />
+      </ZkappModalActions>
+    </ZkappModal>
   );
 }

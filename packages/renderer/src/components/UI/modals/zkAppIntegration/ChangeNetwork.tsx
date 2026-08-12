@@ -1,24 +1,21 @@
-import {useRecoilState} from 'recoil';
-import {ModalContainer} from '..';
-import {networkState} from '../../../../store';
-import Button from '../../Button';
-import {sendResponse} from '../../../../tools/mina-zkapp-bridge';
-import {toast} from 'react-toastify';
+import {ArrowRight, Globe} from 'react-feather';
 import {useNavigate} from 'react-router-dom';
+import {toast} from 'react-toastify';
+import {useRecoilState} from 'recoil';
 import {useNetworkSettingsContext} from '/@/contexts/NetworkContext';
+import {networkState} from '/@/store';
+import {sendResponse} from '/@/tools/mina-zkapp-bridge';
+import Button from '../../Button';
+import {ZkappModal, ZkappModalActions, ZkappModalDetails} from './ZkappModal';
 
 export default function ChangeNetwork() {
   const {saveSettings, availableNetworks} = useNetworkSettingsContext();
-  const [
-    {
-      availableNetworks: availableNetworksFromStore,
-      showChangeNetworkModal,
-      selectedNetwork,
-      switchNetwork,
-    },
-    setNetworkState,
-  ] = useRecoilState(networkState);
+  const [{showChangeNetworkModal, isAddingChain, selectedNetwork, switchNetwork}, setNetworkState] =
+    useRecoilState(networkState);
   const navigate = useNavigate();
+  const targetNetwork = switchNetwork
+    ? availableNetworks?.[switchNetwork.split(':')[1]]
+    : undefined;
 
   const onClose = () => {
     setNetworkState(prev => ({
@@ -28,94 +25,55 @@ export default function ChangeNetwork() {
       isAddingChain: false,
     }));
   };
-  const networksFound =
-    (switchNetwork &&
-      availableNetworks.filter(network => network.networkID === switchNetwork)[0]) ||
-    'Network not found';
-
-  const networkName =
-    switchNetwork && availableNetworks[switchNetwork.split(':')[1]]
-      ? availableNetworks[switchNetwork.split(':')[1]].name
-      : 'Network not found';
 
   const onConfirm = async () => {
-    networkSelectHandler();
-  };
-
-  const getNetworkData = () => {
-    const networksFound =
-      switchNetwork && availableNetworks.filter(network => network.networkID === switchNetwork)[0];
-    if (!networksFound) {
+    if (!targetNetwork) {
       toast.error('Network not found');
       return;
     }
-    return networksFound;
-  };
-
-  const networkSelectHandler = async () => {
-    const network = getNetworkData();
-    if (!network) {
-      return;
-    }
     try {
-      const networksFound =
-        switchNetwork &&
-        availableNetworks.filter(network => network.networkID === switchNetwork)[0];
-      await saveSettings(networksFound);
+      await saveSettings(targetNetwork);
       setNetworkState(prev => ({
         ...prev,
-        selectedNetwork: network,
+        selectedNetwork: targetNetwork,
+        selectedNode: targetNetwork,
         switchNetwork: undefined,
         showChangeNetworkModal: false,
         isAddingChain: false,
-        selectedNode: networksFound,
       }));
       sendResponse('clorio-switched-chain', {newtorkID: `mina:${switchNetwork}`});
       navigate('/overview');
       toast.success('Network switched successfully');
     } catch (error) {
-      toast.error(`Failed to switch network: ${error.message}`);
+      toast.error(
+        `Failed to switch network: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   };
 
   return (
-    <ModalContainer
-      show={showChangeNetworkModal}
+    <ZkappModal
+      show={showChangeNetworkModal && !isAddingChain}
       close={onClose}
-      className="confirm-transaction-modal"
+      title="Switch network"
+      subtitle="The active network will change for Clorio and the requesting zkApp."
+      icon={<Globe size={20} />}
     >
-      <div>
-        <h1>Confirm network switch</h1>
-        <hr />
-      </div>
-      <div className="flex flex-col gap-2">
-        <p>Clorio will switch to the following network</p>
-        <div className="flex gap-4 confirm-transaction-data">
-          <div className="w-100">
-            <h4>Current</h4>
-            <p className="data-field">{selectedNetwork?.name}</p>
-          </div>
-          <div className="w-100">
-            <h4>Target</h4>
-            <p className="data-field">{networksFound.name || 'Network not found'}</p>
-          </div>
-        </div>
-        <div className="flex mt-4 gap-4 confirm-transaction-data sm-flex-reverse">
-          <Button
-            className="w-100"
-            text="Cancel"
-            style="standard"
-            variant="outlined"
-            onClick={onClose}
-          />
-          <Button
-            className="w-100"
-            text="Confirm"
-            style="primary"
-            onClick={onConfirm}
-          />
-        </div>
-      </div>
-    </ModalContainer>
+      <ZkappModalDetails items={[
+        {label: 'Current', value: selectedNetwork?.name},
+        {label: 'Target', value: targetNetwork?.name || 'Network not found'},
+      ]} />
+      <ZkappModalActions>
+        <Button text="Cancel" variant="outlined" onClick={onClose} />
+        <Button
+          text="Switch network"
+          icon={<ArrowRight size={16} />}
+          appendIcon
+          style="primary"
+          disabled={!targetNetwork}
+          onClick={onConfirm}
+        />
+      </ZkappModalActions>
+    </ZkappModal>
   );
 }
