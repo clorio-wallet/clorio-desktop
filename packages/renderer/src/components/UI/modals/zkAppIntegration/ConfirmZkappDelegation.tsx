@@ -1,9 +1,7 @@
 import {useRecoilState, useRecoilValue} from 'recoil';
-import {ModalContainer} from '..';
 import {walletState, zkappState} from '../../../../store';
 import {zkappInitialState} from '../../../../store/zkapp';
-import {useContext, useEffect, useRef, useState} from 'react';
-import Truncate from 'react-truncate-inside/es';
+import {useContext, useEffect, useState} from 'react';
 import Button from '../../Button';
 import {getAccountAddress, sendResponse} from '../../../../tools/mina-zkapp-bridge';
 import {useLazyQuery, useMutation} from '@apollo/client';
@@ -19,6 +17,8 @@ import {BalanceContext} from '/@/contexts/balance/BalanceContext';
 import {ERROR_CODES} from '/@/tools/zkapp';
 import TransactionData from './TransactionData';
 import ConfirmZkappLedgerDelegation from './ConfirmZkappLedgerDelegation';
+import {Layers} from 'react-feather';
+import {ZkappModal, ZkappModalActions} from './ZkappModal';
 
 interface SignedTx {
   signature: {
@@ -39,10 +39,8 @@ interface SignedTx {
 export default function ConfirmZkappDelegation() {
   const wallet = useRecoilValue(walletState);
   const isLedgerEnabled = wallet.ledger;
-  const fromRef = useRef(null);
-  const [fromTextWidth, setFromTextWidth] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
-  const [fetchNonce, {data: nonceData, error: nonceError}] =
+  const [fetchNonce, {error: nonceError}] =
     useLazyQuery<INonceAndBalanceQueryResult>(GET_NONCE_AND_BALANCE);
   const [{transactionData, showDelegationConfirmation}, setZkappState] = useRecoilState(zkappState);
   const {getBalance} = useContext<Partial<IBalanceContext>>(BalanceContext);
@@ -57,11 +55,6 @@ export default function ConfirmZkappDelegation() {
     fetchAndSetNonce();
   }, [showDelegationConfirmation]);
 
-  useEffect(() => {
-    if (fromRef.current) {
-      setFromTextWidth(fromRef.current.offsetWidth - 250);
-    }
-  }, [fromRef.current, showDelegationConfirmation]);
 
   const onClose = () => {
     setZkappState(state => ({
@@ -188,16 +181,14 @@ export default function ConfirmZkappDelegation() {
   };
 
   return (
-    <ModalContainer
+    <ZkappModal
       show={showDelegationConfirmation}
       close={onClose}
-      className="confirm-transaction-modal"
-      closeOnBackgroundClick={false}
+      title="Confirm delegation"
+      subtitle="Review the validator and fee before signing this delegation."
+      icon={<Layers size={20} />}
+      wide
     >
-      <div>
-        <h1>Confirm stake delegation</h1>
-        <hr />
-      </div>
       {showPassword ? (
         isLedgerEnabled ? (
           <ConfirmZkappLedgerDelegation
@@ -218,23 +209,12 @@ export default function ConfirmZkappDelegation() {
             onNonceEdit={onNonceEdit}
             isDelegation
           />
-          <div className="flex mt-2 gap-4 confirm-transaction-data sm-flex-reverse">
-            <Button
-              className="w-100"
-              text="Cancel"
-              style="standard"
-              variant="outlined"
-              onClick={onClose}
-            />
-            <Button
-              className="w-100"
-              text="Confirm"
-              style="primary"
-              onClick={onSign}
-            />
-          </div>
+          <ZkappModalActions>
+            <Button text="Cancel" variant="outlined" onClick={onClose} />
+            <Button text="Continue" style="primary" onClick={onSign} />
+          </ZkappModalActions>
         </div>
       )}
-    </ModalContainer>
+    </ZkappModal>
   );
 }

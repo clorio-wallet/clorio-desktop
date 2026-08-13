@@ -1,5 +1,4 @@
 import {useRecoilState, useRecoilValue} from 'recoil';
-import {ModalContainer} from '..';
 import {configState, walletState, zkappState} from '../../../../store';
 import {zkappInitialState} from '../../../../store/zkapp';
 import {useContext, useEffect, useState} from 'react';
@@ -24,12 +23,14 @@ import TransactionData from './TransactionData';
 import {IBalanceContext} from '/@/contexts/balance/BalanceTypes';
 import {BalanceContext} from '/@/contexts/balance/BalanceContext';
 import Big from 'big.js';
+import {Send} from 'react-feather';
+import {ZkappModal, ZkappModalActions} from './ZkappModal';
 
 export default function ConfirmZkappPayment() {
   const wallet = useRecoilValue(walletState);
   const {isLedgerEnabled} = useRecoilValue(configState);
   const [showPassword, setShowPassword] = useState(false);
-  const [fetchNonce, {data: nonceData, error: nonceError}] =
+  const [fetchNonce, {error: nonceError}] =
     useLazyQuery<INonceQueryResult>(GET_NONCE);
   const [{transactionData, showPaymentConfirmation}, setZkappState] = useRecoilState(zkappState);
   const {getBalance} = useContext<Partial<IBalanceContext>>(BalanceContext);
@@ -174,16 +175,14 @@ export default function ConfirmZkappPayment() {
     : 'Confirm transaction';
 
   return (
-    <ModalContainer
+    <ZkappModal
       show={showPaymentConfirmation}
       close={onClose}
-      className="confirm-transaction-modal"
-      closeOnBackgroundClick={false}
+      title={modalTitle}
+      subtitle="Review the payment details and fees before signing."
+      icon={<Send size={20} />}
+      wide
     >
-      <div>
-        <h1>{modalTitle}</h1>
-        <hr />
-      </div>
       {showPassword ? (
         isLedgerEnabled ? (
           <ConfirmZkappLedger
@@ -203,23 +202,12 @@ export default function ConfirmZkappPayment() {
             onFeeEdit={onFeeEdit}
             onNonceEdit={onNonceEdit}
           />
-          <div className="flex mt-2 gap-4 confirm-transaction-data sm-flex-reverse">
-            <Button
-              className="w-100"
-              text="Cancel"
-              style="standard"
-              variant="outlined"
-              onClick={onClose}
-            />
-            <Button
-              className="w-100"
-              text="Confirm"
-              style="primary"
-              onClick={onSign}
-            />
-          </div>
+          <ZkappModalActions>
+            <Button text="Cancel" variant="outlined" onClick={onClose} />
+            <Button text="Continue" style="primary" onClick={onSign} />
+          </ZkappModalActions>
         </div>
       )}
-    </ModalContainer>
+    </ZkappModal>
   );
 }

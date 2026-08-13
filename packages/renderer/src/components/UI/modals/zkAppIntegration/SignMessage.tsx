@@ -1,5 +1,4 @@
 import {useRecoilState, useRecoilValue} from 'recoil';
-import {ModalContainer} from '../ModalContainer';
 import {walletState, zkappState} from '/@/store';
 import {sendResponse} from '/@/tools/mina-zkapp-bridge';
 import Button from '../../Button';
@@ -9,6 +8,8 @@ import {client} from '/@/tools';
 import {mnemonicToPrivateKey} from '../../../../../../preload/src/bip';
 import {toast} from 'react-toastify';
 import MessageData from './MessageData';
+import {Edit3} from 'react-feather';
+import {ZkappModal, ZkappModalActions} from './ZkappModal';
 
 export default function SignMessage() {
   const wallet = useRecoilValue(walletState);
@@ -75,42 +76,24 @@ export default function SignMessage() {
   };
 
   return (
-    <ModalContainer
+    <ZkappModal
       show={showMessageSign}
       close={onClose}
-      className="confirm-transaction-modal"
-      closeOnBackgroundClick={false}
+      title="Sign message"
+      subtitle="Review the requested content before signing with your active account."
+      icon={<Edit3 size={20} />}
     >
-      <div>
-        <h1>Sign message</h1>
-        <hr />
-      </div>
-
       {showPassword ? (
-        <PasswordDecrypt
-          onClose={() => setShowPassword(false)}
-          onSuccess={onConfirm}
-        />
+        <PasswordDecrypt onClose={() => setShowPassword(false)} onSuccess={onConfirm} />
       ) : (
-        <div className="flex flex-col gap-4">
+        <>
           <MessageData messageToSign={messageToSign} />
-          <div className="flex mt-2 gap-4 confirm-transaction-data sm-flex-reverse">
-            <Button
-              className="w-100"
-              text="Cancel"
-              style="standard"
-              variant="outlined"
-              onClick={onClose}
-            />
-            <Button
-              className="w-100"
-              text="Sign"
-              style="primary"
-              onClick={() => setShowPassword(true)}
-            />
-          </div>
-        </div>
+          <ZkappModalActions>
+            <Button text="Cancel" variant="outlined" onClick={onClose} />
+            <Button text="Continue to sign" style="primary" onClick={() => setShowPassword(true)} />
+          </ZkappModalActions>
+        </>
       )}
-    </ModalContainer>
+    </ZkappModal>
   );
 }

@@ -1,7 +1,6 @@
 import {useRecoilState, useRecoilValue} from 'recoil';
-import {ModalContainer} from '..';
 import {walletState, zkappState} from '../../../../store';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import Button from '../../Button';
 import {getAccountAddress, sendResponse} from '../../../../tools/mina-zkapp-bridge';
 import {useLazyQuery} from '@apollo/client';
@@ -13,15 +12,15 @@ import {client, toMINA, toNanoMINA} from '/@/tools';
 import {mnemonicToPrivateKey} from '../../../../../../preload/src/bip';
 import {ERROR_CODES} from '/@/tools/zkapp';
 import TransactionData from './TransactionData';
+import {FileText} from 'react-feather';
+import {ZkappModal, ZkappModalActions} from './ZkappModal';
 
 export default function ConfirmZkappTransaction() {
   const wallet = useRecoilValue(walletState);
-  const fromRef = useRef(null);
-  const [fromTextWidth, setFromTextWidth] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [fetchNonce, {data: nonceData, error: nonceError}] =
     useLazyQuery<INonceQueryResult>(GET_NONCE);
-  const [{transactionData, showTransactionConfirmation, isZkappCommand}, setZkappState] =
+  const [{transactionData, showTransactionConfirmation}, setZkappState] =
     useRecoilState(zkappState);
 
   useEffect(() => {
@@ -31,11 +30,6 @@ export default function ConfirmZkappTransaction() {
     }
   }, [showTransactionConfirmation]);
 
-  useEffect(() => {
-    if (fromRef.current) {
-      setFromTextWidth(fromRef.current.offsetWidth - 350);
-    }
-  }, [fromRef.current]);
 
   const shortTransactionData = () => {
     if (transactionData?.transaction) {
@@ -159,16 +153,14 @@ export default function ConfirmZkappTransaction() {
   );
 
   return (
-    <ModalContainer
+    <ZkappModal
       show={showTransactionConfirmation}
       close={onClose}
-      closeOnBackgroundClick={false}
-      className="confirm-transaction-modal"
+      title="Confirm transaction"
+      subtitle="Review the zkApp transaction contents and fee before signing."
+      icon={<FileText size={20} />}
+      wide
     >
-      <div>
-        <h1>Confirm transaction</h1>
-        <hr />
-      </div>
       {showPassword ? (
         <PasswordDecrypt
           onClose={() => setShowPassword(false)}
@@ -182,23 +174,12 @@ export default function ConfirmZkappTransaction() {
             onNonceEdit={onNonceEdit}
             isZkappCommand
           />
-          <div className="flex mt-2 gap-4 confirm-transaction-data sm-flex-reverse">
-            <Button
-              className="w-100"
-              text="Cancel"
-              style="standard"
-              variant="outlined"
-              onClick={onClose}
-            />
-            <Button
-              className="w-100"
-              text="Confirm"
-              style="primary"
-              onClick={() => setShowPassword(true)}
-            />
-          </div>
+          <ZkappModalActions>
+            <Button text="Cancel" variant="outlined" onClick={onClose} />
+            <Button text="Continue" style="primary" onClick={() => setShowPassword(true)} />
+          </ZkappModalActions>
         </>
       )}
-    </ModalContainer>
+    </ZkappModal>
   );
 }
