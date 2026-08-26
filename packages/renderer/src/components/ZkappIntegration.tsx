@@ -40,7 +40,7 @@ export default function ZkappIntegration() {
 
   useEffect(() => {
     setListeners();
-  }, [config, wallet, sites]);
+  }, [config, wallet, sites, selectedNetwork, selectedNode]);
 
   const setListeners = () => {
     window.ipcBridge.on('clorio-event', async (event, payload) => {

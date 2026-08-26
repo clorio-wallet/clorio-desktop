@@ -2,13 +2,13 @@ import {useRecoilState} from 'recoil';
 import {ModalContainer} from '..';
 import {networkState} from '../../../../store';
 import Button from '../../Button';
-import {sendResponse} from '../../../../tools/mina-zkapp-bridge';
+import {NetConfig, sendResponse} from '../../../../tools/mina-zkapp-bridge';
 import {toast} from 'react-toastify';
 import {useNavigate} from 'react-router-dom';
 import {useNetworkSettingsContext} from '/@/contexts/NetworkContext';
 
 export default function ChangeNetwork() {
-  const {saveSettings, availableNetworks} = useNetworkSettingsContext();
+  const {saveSettings, availableNetworks: availableNetworksContext} = useNetworkSettingsContext();
   const [
     {
       availableNetworks: availableNetworksFromStore,
@@ -28,9 +28,11 @@ export default function ChangeNetwork() {
       isAddingChain: false,
     }));
   };
+
+  const availableNetworks = availableNetworksContext || availableNetworksFromStore || [];
+
   const networksFound =
-    (switchNetwork &&
-      availableNetworks.filter(network => network.networkID === switchNetwork)[0]) ||
+    (switchNetwork && availableNetworks.find(network => network.networkID === switchNetwork)) ||
     'Network not found';
 
   const networkName =
@@ -44,7 +46,7 @@ export default function ChangeNetwork() {
 
   const getNetworkData = () => {
     const networksFound =
-      switchNetwork && availableNetworks.filter(network => network.networkID === switchNetwork)[0];
+      switchNetwork && availableNetworks.find(network => network.networkID === switchNetwork);
     if (!networksFound) {
       toast.error('Network not found');
       return;
@@ -58,23 +60,25 @@ export default function ChangeNetwork() {
       return;
     }
     try {
-      const networksFound =
-        switchNetwork &&
-        availableNetworks.filter(network => network.networkID === switchNetwork)[0];
-      await saveSettings(networksFound);
+      saveSettings(network);
       setNetworkState(prev => ({
         ...prev,
         selectedNetwork: network,
         switchNetwork: undefined,
         showChangeNetworkModal: false,
         isAddingChain: false,
-        selectedNode: networksFound,
+        selectedNode: network,
       }));
-      sendResponse('clorio-switched-chain', {newtorkID: `mina:${switchNetwork}`});
+      sendResponse('chain-change', {
+        chainId: network.networkID,
+        name: network.name,
+        networkID: `${switchNetwork}`,
+      } as NetConfig);
+      sendResponse('clorio-switched-chain', {networkID: `${switchNetwork}`});
       navigate('/overview');
       toast.success('Network switched successfully');
     } catch (error) {
-      toast.error(`Failed to switch network: ${error.message}`);
+      toast.error(`Failed to switch network: ${(error as Error).message}`);
     }
   };
 
@@ -97,7 +101,9 @@ export default function ChangeNetwork() {
           </div>
           <div className="w-100">
             <h4>Target</h4>
-            <p className="data-field">{networksFound.name || 'Network not found'}</p>
+            <p className="data-field">
+              {typeof networksFound === 'string' ? networksFound : networksFound.name}
+            </p>
           </div>
         </div>
         <div className="flex mt-4 gap-4 confirm-transaction-data sm-flex-reverse">
